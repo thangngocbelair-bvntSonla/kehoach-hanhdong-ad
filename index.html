@@ -2242,6 +2242,7 @@
             return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
         }
    <!-- FIREBASE REALTIME SYNC INTEGRATION -->
+    <!-- FIREBASE REALTIME SYNC & DATABASE BRIDGE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -2259,6 +2260,39 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         console.log("Firebase initialized successfully!");
+
+        // Lắng nghe dữ liệu thời gian thực từ Firestore
+        onSnapshot(collection(db, "activities"), (snapshot) => {
+            const cloudActivities = [];
+            snapshot.forEach((docSnap) => {
+                cloudActivities.push(docSnap.data());
+            });
+            if (cloudActivities.length > 0) {
+                activities = cloudActivities;
+                saveToStorage();
+                refreshAllViews();
+            }
+        }, (error) => {
+            console.error("Lỗi đồng bộ Firebase: ", error);
+        });
+
+        // Ghi đè hàm saveToStorage để tự động đẩy lên Firebase Cloud
+        window.saveToFirebase = async function(item) {
+            try {
+                await setDoc(doc(db, "activities", String(item.id)), item);
+            } catch (e) {
+                console.error("Lỗi lưu Firebase: ", e);
+            }
+        };
+
+        // Ghi đè hàm xóa trên Firebase
+        window.deleteFromFirebase = async function(id) {
+            try {
+                await deleteDoc(doc(db, "activities", String(id)));
+            } catch (e) {
+                console.error("Lỗi xóa Firebase: ", e);
+            }
+        };
     </script>
 </body>
 </html>
