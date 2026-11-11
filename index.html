@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v21.0 - Firebase Sync)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v21.0)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Client-side export libraries -->
+    <!-- Client-side export libraries (the app remains a single HTML file) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" defer></script>
@@ -50,4 +50,2197 @@
 <body class="bg-white text-gray-800 min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- HEADER BRANDING -->
-    <header class="bg-bvblue-700 text-white border-b border-bvblue-600 sticky top-0 z-30 shadow
+    <header class="bg-bvblue-700 text-white border-b border-bvblue-600 sticky top-0 z-30 shadow-md">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-bvblue-700 shadow-md ring-2 ring-bvyellow-400">
+                    <i class="fa-solid fa-shield-halved text-2xl text-bvblue-700"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wide text-white uppercase font-sans">
+                        BẢO VIỆT NHÂN THỌ
+                    </h1>
+                    <p class="text-xs sm:text-sm font-semibold text-bvyellow-400 tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-tie text-[11px]"></i> AD Trọng Nghĩa Sơn La - Schedule & Investment Tracker v21.0
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <span id="vietnamClock" class="hidden xl:inline text-[11px] font-semibold text-white/90 whitespace-nowrap" aria-live="off"></span>
+                <button onclick="openModal()" class="bg-bvyellow-500 hover:bg-bvyellow-600 text-bvblue-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow-lg transition-all hover:scale-105 active:scale-95">
+                    <i class="fa-solid fa-plus mr-2"></i> Thêm hoạt động
+                </button>
+                <button onclick="openReportModal()" class="bg-white hover:bg-bvblue-50 text-bvblue-800 font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow transition-all">
+                    <i class="fa-solid fa-file-export sm:mr-2"></i><span class="hidden sm:inline">Xuất báo cáo</span>
+                </button>
+                
+                <div class="relative" id="utilityMenuWrapper">
+                    <button id="utilityMenuToggle" type="button" onclick="toggleUtilityMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="utilityMenuPanel" title="Mở menu thao tác" class="p-2.5 rounded-xl bg-bvblue-800 border border-bvblue-600 hover:bg-bvblue-600 text-white transition">
+                        <i class="fa-solid fa-ellipsis-vertical text-base"></i>
+                    </button>
+                    <div id="utilityMenuPanel" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 hidden z-50">
+                        <button onclick="exportData()" class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-bvblue-50 flex items-center">
+                            <i class="fa-solid fa-download mr-3 text-bvblue-500"></i> Xuất file JSON
+                        </button>
+                        <label class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-bvblue-50 flex items-center cursor-pointer">
+                            <i class="fa-solid fa-code-merge mr-3 text-emerald-500"></i> Nhập / gộp JSON
+                            <input type="file" id="importFileInput" onchange="importData(event)" accept=".json" class="hidden">
+                        </label>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <button onclick="clearAllData()" class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center">
+                            <i class="fa-solid fa-trash-can mr-3"></i> Xóa toàn bộ dữ liệu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- MASTER NAVIGATION TABS (4 TABS) -->
+        <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap gap-2 items-center justify-between">
+            <div class="flex bg-gray-100 p-1.5 rounded-xl w-full lg:w-auto overflow-x-auto custom-scrollbar gap-1">
+                <button id="mainTabCalendar" onclick="switchMainTab('calendar')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm bg-bvblue-600 text-white flex items-center">
+                    <i class="fa-solid fa-calendar-days mr-2 text-bvyellow-400"></i> Lịch Tổng thể tuần/tháng
+                </button>
+                <button id="mainTabGroup" onclick="switchMainTab('group')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                    <i class="fa-solid fa-users mr-2 text-indigo-500"></i> HN cấp Nhóm
+                </button>
+                <button id="mainTabTvnn" onclick="switchMainTab('tvnn')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                    <i class="fa-solid fa-handshake mr-2 text-amber-500"></i> HN TVNN
+                </button>
+                <button id="mainTabBoss" onclick="switchMainTab('boss')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                    <i class="fa-solid fa-user-ninja mr-2 text-purple-600"></i> HN BOSS
+                </button>
+            </div>
+
+            <!-- Global Search -->
+            <div class="flex items-center gap-2 w-full lg:w-auto px-2 pb-2 lg:pb-0">
+                <div class="relative flex-1 lg:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" id="globalSearchInput" oninput="handleGlobalSearch()" placeholder="Tìm nhanh lịch, TVV, địa bàn..." class="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none">
+                </div>
+                <button onclick="resetPlanningView()" title="Xóa bộ lọc và chuyển lịch về kỳ hiện tại; không xóa kế hoạch." class="px-3 py-2 bg-bvblue-50 hover:bg-bvblue-100 text-bvblue-700 border border-bvblue-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
+                    <i class="fa-solid fa-crosshairs mr-1"></i> Về hiện tại
+                </button>
+                <button onclick="openResetModal()" title="Chọn ngày, tuần hoặc tháng cụ thể để xóa kế hoạch trong phạm vi đó." class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Xóa kế hoạch
+                </button>
+            </div>
+        </div>
+
+        <!-- SECTION 1: MASTER CALENDAR & SCHEDULE VIEW -->
+        <div id="sectionCalendar" class="space-y-6">
+            <!-- DASHBOARD CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-2xl border-l-4 border-l-bvblue-600 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-bvblue-700 uppercase tracking-wider">Tổng lịch</p>
+                        <h3 id="statTotal" class="text-2xl font-extrabold mt-1 text-gray-900">0</h3>
+                        <p class="text-[11px] text-gray-500 mt-0.5">Tất cả hoạt động</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-bvblue-50 text-bvblue-600 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border-l-4 border-l-amber-500 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Lịch Hành Chính</p>
+                        <h3 id="statAdmin" class="text-2xl font-extrabold mt-1 text-amber-600">0</h3>
+                        <p class="text-[11px] text-amber-500 font-medium">Giấy tờ / Báo cáo</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border-l-4 border-l-purple-600 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Hội Nghị (HN)</p>
+                        <h3 id="statEvents" class="text-2xl font-extrabold mt-1 text-purple-600">0</h3>
+                        <p class="text-[11px] text-purple-500 font-medium">Sự kiện tổ chức</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border-l-4 border-l-emerald-500 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Doanh Thu (T+5)</p>
+                        <h3 id="statFypActual" class="text-xl font-extrabold mt-1 text-emerald-600">0 trđ</h3>
+                        <p class="text-[11px] text-emerald-500 font-medium" id="fypRateBadge">Ký trong 5 ngày sau HN</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border-l-4 border-l-sky-500 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-sky-600 uppercase tracking-wider">Tổng Chi Phí Đầu Tư</p>
+                        <h3 id="statSupportTotal" class="text-xl font-extrabold mt-1 text-sky-700">0 đ</h3>
+                        <p class="text-[11px] text-sky-500 font-medium">Hỗ trợ + Thuyết trình + Xe</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB CONTROLS & VIEW SWITCHER -->
+            <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+                <div class="flex bg-gray-100 p-1 rounded-xl w-full md:w-auto">
+                    <button id="viewMatrixBtn" onclick="switchView('matrix')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-bvblue-600 text-white">
+                        <i class="fa-solid fa-table-cells mr-1.5"></i> Lịch Tuần (Sáng-Chiều-Tối)
+                    </button>
+                    <button id="viewCalBtn" onclick="switchView('calendar')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-900 transition-all">
+                        <i class="fa-solid fa-calendar-days mr-1.5"></i> Lịch Tháng
+                    </button>
+                    <button id="viewListBtn" onclick="switchView('list')" class="flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-900 transition-all">
+                        <i class="fa-solid fa-list mr-1.5"></i> Danh sách
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap md:flex-nowrap items-center gap-2 w-full md:w-auto">
+                    <select id="categoryFilter" onchange="applyFilters()" class="bg-gray-50 border border-gray-200 text-gray-800 text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-bvblue-500 outline-none flex-1 md:flex-none">
+                        <option value="ALL">Tất cả loại lịch</option>
+                        <option value="Hành chính">📋 Lịch Hành chính</option>
+                        <option value="Họp hành">🏢 Họp hệ thống / Cơ chế</option>
+                        <option value="Đào tạo">🎓 Đào tạo đại lý / Sản phẩm</option>
+                        <option value="Tuyển dụng">🎯 Phỏng vấn / Calling / JFW</option>
+                        <option value="HN Nhóm">👥 HN cấp Nhóm</option>
+                        <option value="TVNN Tiệc mặn">🍲 HN TVNN Tiệc mặn</option>
+                        <option value="TVNN Tặng quà">🎁 HN TVNN Tặng quà</option>
+                        <option value="HN BOSS Tuyển dụng">👔 HN BOSS</option>
+                    </select>
+                    <select id="priorityFilter" onchange="applyFilters()" class="bg-gray-50 border border-gray-200 text-gray-800 text-xs font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-bvblue-500 outline-none flex-1 md:flex-none">
+                        <option value="ALL">🎯 Tất cả cấp độ</option>
+                        <option value="Công ty">🔴 Lịch Công ty</option>
+                        <option value="Phòng">🟣 Lịch Phòng</option>
+                        <option value="AD">🔵 Lịch AD</option>
+                        <option value="Nhóm">🟢 Lịch Nhóm</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VIEW 1: WEEKLY MATRIX -->
+            <div id="matrixView" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <h2 id="matrixWeekLabel" class="text-base sm:text-lg font-extrabold text-bvblue-800 flex items-center">
+                            <i class="fa-solid fa-table-cells-large mr-2 text-bvblue-500"></i> Lịch Hoạt Động Tuần (Sáng - Chiều - Tối)
+                        </h2>
+                        <button onclick="goToCurrentWeek()" class="px-3 py-1 bg-bvblue-50 text-bvblue-600 text-xs font-bold rounded-lg border border-bvblue-200 hover:bg-bvblue-100 transition">Tuần này</button>
+                        <button onclick="showTodayOnCalendar()" class="px-3 py-1 bg-white text-bvblue-700 text-xs font-bold rounded-lg border border-bvblue-200 hover:bg-bvblue-50 transition">Xem hôm nay</button>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button onclick="changeWeek(-1)" class="px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-bvblue-50 text-bvblue-700 font-bold text-xs">
+                            <i class="fa-solid fa-chevron-left mr-1"></i> Tuần trước
+                        </button>
+                        <button onclick="changeWeek(1)" class="px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-bvblue-50 text-bvblue-700 font-bold text-xs">
+                            Tuần sau <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full border-collapse text-left min-w-[950px]">
+                        <thead>
+                            <tr class="bg-bvblue-700 text-white text-xs uppercase font-extrabold">
+                                <th class="p-3 border border-bvblue-600 w-24 text-center">Khung</th>
+                                <th id="th-Mon" class="p-3 border border-bvblue-600 text-center w-[13.5%]">Thứ 2</th>
+                                <th id="th-Tue" class="p-3 border border-bvblue-600 text-center w-[13.5%]">Thứ 3</th>
+                                <th id="th-Wed" class="p-3 border border-bvblue-600 text-center w-[13.5%]">Thứ 4</th>
+                                <th id="th-Thu" class="p-3 border border-bvblue-600 text-center w-[13.5%]">Thứ 5</th>
+                                <th id="th-Fri" class="p-3 border border-bvblue-600 text-center w-[13.5%]">Thứ 6</th>
+                                <th id="th-Sat" class="p-3 border border-bvblue-600 text-center w-[13.5%] bg-bvyellow-600 text-bvblue-900">Thứ 7</th>
+                                <th id="th-Sun" class="p-3 border border-bvblue-600 text-center w-[13.5%] bg-red-600 text-white">Chủ Nhật</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matrixTbody" class="text-xs divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW 2: MONTHLY CALENDAR -->
+            <div id="calendarView" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <h2 id="currentMonthYear" class="text-lg sm:text-xl font-extrabold text-bvblue-800">Tháng 11, 2026</h2>
+                        <button onclick="goToToday()" class="px-3 py-1 bg-bvblue-50 text-bvblue-600 text-xs font-bold rounded-lg border border-bvblue-200 hover:bg-bvblue-100 transition">Tháng này</button>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button onclick="changeMonth(-1)" class="p-2 rounded-xl border border-gray-200 hover:bg-bvblue-50 text-bvblue-700 font-bold">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button onclick="changeMonth(1)" class="p-2 rounded-xl border border-gray-200 hover:bg-bvblue-50 text-bvblue-700 font-bold">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-500 uppercase tracking-wider mb-2">
+                    <div>Thứ 2</div><div>Thứ 3</div><div>Thứ 4</div><div>Thứ 5</div><div>Thứ 6</div><div class="text-bvyellow-600">Thứ 7</div><div class="text-red-500">Chủ Nhật</div>
+                </div>
+                <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-2 auto-rows-fr"></div>
+            </div>
+
+            <!-- VIEW 3: LIST VIEW -->
+            <div id="listView" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hidden">
+                <div class="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <h2 class="text-base sm:text-lg font-bold text-bvblue-800 flex items-center">
+                        <i class="fa-solid fa-list-ul mr-2 text-bvblue-500"></i> Danh sách hoạt động chi tiết
+                    </h2>
+                    <span id="listCountBadge" class="text-xs bg-bvblue-100 text-bvblue-700 px-3 py-1 rounded-full font-bold">0 mục</span>
+                </div>
+                <div id="activityList" class="divide-y divide-gray-100 max-h-[600px] overflow-y-auto custom-scrollbar"></div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: DEDICATED TAB - HN CẤP NHÓM -->
+        <div id="sectionGroup" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-indigo-800 flex items-center">
+                        <i class="fa-solid fa-users mr-2 text-indigo-600"></i> Theo dõi HN cấp Nhóm (Chi phí Đầu tư & Kết quả T+5)
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Quản lý các hội nghị cấp Nhóm với tùy chọn Tiệc mặn / Tặng quà, chi phí Thuyết trình, Hỗ trợ xe và Doanh thu ký T+5.</p>
+                </div>
+                <button onclick="openModalForCategory('HN Nhóm')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Thêm HN cấp Nhóm
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                    <p class="text-xs font-bold text-indigo-800 uppercase">Tổng số HN cấp Nhóm</p>
+                    <h3 id="groupTotalCount" class="text-2xl font-extrabold text-indigo-900 mt-1">0</h3>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                    <p class="text-xs font-bold text-indigo-800 uppercase">Tổng Khách Dự</p>
+                    <h3 id="groupTotalGuests" class="text-2xl font-extrabold text-indigo-900 mt-1">0 khách</h3>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                    <p class="text-xs font-bold text-indigo-800 uppercase">Tổng Chi Phí Đầu Tư</p>
+                    <h3 id="groupTotalCost" class="text-2xl font-extrabold text-sky-700 mt-1">0 đ</h3>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-200">
+                    <p class="text-xs font-bold text-indigo-800 uppercase">Doanh Thu Ký T+5</p>
+                    <h3 id="groupTotalFyp" class="text-2xl font-extrabold text-emerald-700 mt-1">0 trđ</h3>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse text-left text-xs min-w-[1100px]">
+                    <thead>
+                        <tr class="bg-indigo-700 text-white uppercase font-extrabold">
+                            <th class="p-3 border border-indigo-600">Ngày / Buổi</th>
+                            <th class="p-3 border border-indigo-600">Tên Hội Nghị / Địa bàn</th>
+                            <th class="p-3 border border-indigo-600">Hình Thức</th>
+                            <th class="p-3 border border-indigo-600 text-center">Khách Dự</th>
+                            <th class="p-3 border border-indigo-600 text-right">Chi Phí KH</th>
+                            <th class="p-3 border border-indigo-600 text-right">Thuyết Trình + Xe</th>
+                            <th class="p-3 border border-indigo-600 text-right">Tổng Đầu Tư</th>
+                            <th class="p-3 border border-indigo-600 text-right">Doanh Thu T+5</th>
+                            <th class="p-3 border border-indigo-600 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupTableBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 3: DEDICATED TAB - HN TVNN -->
+        <div id="sectionTvnn" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-amber-800 flex items-center">
+                        <i class="fa-solid fa-handshake mr-2 text-amber-600"></i> Theo dõi Hội Nghị TVNN (Tiệc Mặn & Tặng Quà)
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Quản lý các chương trình Hội nghị TVNN gồm hình thức Tiệc Mặn (500k cố định/cuộc) và Tặng Quà (65k/bộ).</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="tvnnSubFilter" onchange="renderTvnnTable()" class="bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold rounded-xl px-3 py-2 outline-none">
+                        <option value="ALL">Tất cả hình thức TVNN</option>
+                        <option value="TVNN Tiệc mặn">🍲 TVNN Tiệc mặn (500k/cuộc)</option>
+                        <option value="TVNN Tặng quà">🎁 TVNN Tặng quà (65k)</option>
+                    </select>
+                    <button onclick="openModalForCategory('TVNN Tiệc mặn')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Thêm HN TVNN
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                    <p class="text-xs font-bold text-amber-800 uppercase">Tổng số HN TVNN</p>
+                    <h3 id="tvnnTotalCount" class="text-2xl font-extrabold text-amber-900 mt-1">0</h3>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                    <p class="text-xs font-bold text-amber-800 uppercase">Tổng Khách Thực Tế</p>
+                    <h3 id="tvnnTotalGuests" class="text-2xl font-extrabold text-amber-900 mt-1">0 khách</h3>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                    <p class="text-xs font-bold text-amber-800 uppercase">Doanh Thu Ký T+5</p>
+                    <h3 id="tvnnTotalFyp" class="text-2xl font-extrabold text-emerald-700 mt-1">0 trđ</h3>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse text-left text-xs min-w-[1050px]">
+                    <thead>
+                        <tr class="bg-amber-600 text-white uppercase font-extrabold">
+                            <th class="p-3 border border-amber-500">Ngày / Buổi</th>
+                            <th class="p-3 border border-amber-500">Tên Hội Nghị / Địa bàn</th>
+                            <th class="p-3 border border-amber-500">Hình Thức</th>
+                            <th class="p-3 border border-amber-500">TVV / Nhóm Mời</th>
+                            <th class="p-3 border border-amber-500 text-center">TVV Dự</th>
+                            <th class="p-3 border border-amber-500 text-center">Khách (KH/TH)</th>
+                            <th class="p-3 border border-amber-500 text-center">HĐ Chốt</th>
+                            <th class="p-3 border border-amber-500 text-right">Doanh Thu T+5</th>
+                            <th class="p-3 border border-amber-500 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tvnnTableBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 4: DEDICATED TAB - HN BOSS -->
+        <div id="sectionBoss" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-purple-800 flex items-center">
+                        <i class="fa-solid fa-user-ninja mr-2 text-purple-600"></i> Theo dõi HN BOSS (Tuyển Dụng & Đào Tạo BVLN)
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Quản lý các chương trình BOSS Tuyển dụng với mức chi phí tùy chọn tự điền, theo dõi Ứng viên đăng ký và tham dự học BVLN.</p>
+                </div>
+                <button onclick="openModalForCategory('HN BOSS Tuyển dụng')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Thêm HN BOSS
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <p class="text-xs font-bold text-purple-800 uppercase">Tổng số HN BOSS</p>
+                    <h3 id="bossTotalCount" class="text-2xl font-extrabold text-purple-900 mt-1">0</h3>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <p class="text-xs font-bold text-purple-800 uppercase">Tổng Ứng Viên Dự</p>
+                    <h3 id="bossTotalGuests" class="text-2xl font-extrabold text-purple-900 mt-1">0 ứng viên</h3>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <p class="text-xs font-bold text-purple-800 uppercase">Đăng ký học BVLN</p>
+                    <h3 id="bossTotalRegBvln" class="text-2xl font-extrabold text-indigo-900 mt-1">0 UV</h3>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                    <p class="text-xs font-bold text-purple-800 uppercase">Tham dự học thực tế</p>
+                    <h3 id="bossTotalActBvln" class="text-2xl font-extrabold text-emerald-700 mt-1">0 UV</h3>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse text-left text-xs min-w-[1050px]">
+                    <thead>
+                        <tr class="bg-purple-700 text-white uppercase font-extrabold">
+                            <th class="p-3 border border-purple-600">Ngày / Buổi</th>
+                            <th class="p-3 border border-purple-600">Tên Chương Trình / Địa bàn</th>
+                            <th class="p-3 border border-purple-600">Hình Thức Tổ Chức</th>
+                            <th class="p-3 border border-purple-600">TVV / Nhóm Phụ Trách</th>
+                            <th class="p-3 border border-purple-600 text-center">TVV Dự</th>
+                            <th class="p-3 border border-purple-600 text-center">Ứng Viên (KH/TH)</th>
+                            <th class="p-3 border border-purple-600 text-center">Đăng ký học BVLN</th>
+                            <th class="p-3 border border-purple-600 text-center">Học thực tế BVLN</th>
+                            <th class="p-3 border border-purple-600 text-right">Chi Phí Đầu Tư</th>
+                            <th class="p-3 border border-purple-600 text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bossTableBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL FOR ADD / EDIT ACTIVITY -->
+    <div id="activityModal" class="fixed inset-0 bg-bvblue-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-gray-100 transform transition-all max-h-[92vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <h3 id="modalTitle" class="text-base font-bold text-bvblue-800 flex items-center">
+                    <i class="fa-solid fa-calendar-plus mr-2 text-bvyellow-500"></i> Thêm hoạt động mới
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="activityForm" onsubmit="saveActivity(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="activityId">
+
+                <!-- MAIN INFO -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Tên Sự Kiện Tổ Chức / Nội dung công việc *</label>
+                    <input type="text" id="actTitle" required placeholder="Ví dụ: Họp PTKD công ty, HN Nhóm Mường La, Lập báo cáo..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Ngày tổ chức *</label>
+                        <input type="date" id="actDate" required class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Khung buổi *</label>
+                        <select id="actSession" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                            <option value="Sáng">🌅 Buổi Sáng</option>
+                            <option value="Chiều">☀️ Buổi Chiều</option>
+                            <option value="Tối">🌙 Buổi Tối</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Giờ cụ thể (nếu có)</label>
+                        <input type="time" id="actTime" oninput="syncSessionFromTime()" onchange="syncSessionFromTime()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Phân loại hoạt động</label>
+                        <select id="actCategory" onchange="handleCategoryChange()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                            <option value="Hành chính">📋 Lịch Hành chính (Khác)</option>
+                            <option value="Họp hành">🏢 Họp hệ thống / Cơ chế</option>
+                            <option value="Đào tạo">🎓 Đào tạo đại lý / Sản phẩm</option>
+                            <option value="Tuyển dụng">🎯 Phỏng vấn / Calling / JFW</option>
+                            <option value="HN Nhóm">👥 HN cấp Nhóm</option>
+                            <option value="HN Phòng">🏢 HN Phòng</option>
+                            <option value="TVNN Tiệc mặn">🍲 HN TVNN Tiệc mặn</option>
+                            <option value="TVNN Tặng quà">🎁 HN TVNN Tặng quà</option>
+                            <option value="HN BOSS Tuyển dụng">👔 HN BOSS</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Cấp độ ưu tiên</label>
+                        <select id="actPriority" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                            <option value="Công ty">🔴 Lịch Công ty (Ưu tiên Cao)</option>
+                            <option value="Phòng">🟣 Lịch Phòng (Cấp Phòng)</option>
+                            <option value="AD">🔵 Lịch AD (Cấp AD)</option>
+                            <option value="Nhóm">🟢 Lịch Nhóm (Cấp Nhóm)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Trạng thái</label>
+                        <select id="actStatus" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
+                            <option value="UPCOMING">⏳ Sắp diễn ra</option>
+                            <option value="COMPLETED">✅ Hoàn thành</option>
+                            <option value="CANCELLED">❌ Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SPECIAL BUDGET & EXTENDED RESULT FIELDS -->
+                <div id="specialFields" class="p-4 bg-bvblue-50/70 rounded-2xl border border-bvblue-200 space-y-4">
+                    <div class="flex items-center justify-between border-b border-bvblue-200 pb-2">
+                        <p class="text-xs font-extrabold text-bvblue-800 flex items-center uppercase">
+                            <i class="fa-solid fa-calculator mr-1.5 text-bvyellow-500"></i> Chi phí Đầu tư & Kết quả Sự Kiện Tổ Chức
+                        </p>
+                        <span class="text-[11px] bg-bvblue-200 text-bvblue-800 px-2.5 py-0.5 rounded-full font-bold" id="eventBadgeType">HN Nhóm</span>
+                    </div>
+
+                    <!-- GROUP HN FORMAT -->
+                    <div id="groupFormatContainer" class="p-3 bg-indigo-100/70 rounded-xl border border-indigo-200 space-y-2">
+                        <label class="block text-xs font-extrabold text-indigo-900">Lựa chọn Hình thức HN Nhóm *</label>
+                        <select id="actGroupFormat" onchange="toggleGroupFormatFields()" class="w-full px-3 py-1.5 bg-white border border-indigo-300 rounded-lg text-xs font-bold text-indigo-900 outline-none">
+                            <option value="Tiệc mặn">🍲 HN Nhóm Tiệc mặn (Tự do điền mức chi phí hỗ trợ/KH)</option>
+                            <option value="Tặng quà">🎁 HN Nhóm Tặng quà (Mức quà tặng theo KH)</option>
+                        </select>
+                    </div>
+
+                    <!-- BOSS FORMAT -->
+                    <div id="bossSubOptionContainer" class="p-3 bg-purple-100/70 rounded-xl border border-purple-200 hidden space-y-2">
+                        <label class="block text-xs font-extrabold text-purple-900">Lựa chọn Hình thức HN BOSS Tuyển Dụng *</label>
+                        <select id="actBossFormat" onchange="toggleBossFormatFields()" class="w-full px-3 py-1.5 bg-white border border-purple-300 rounded-lg text-xs font-bold text-purple-900 outline-none">
+                            <option value="Tự điền">✏️ Tự điền mức chi phí hỗ trợ / Ứng viên</option>
+                            <option value="Tiệc mặn">🍲 HN BOSS Tiệc mặn (Định mức 500.000đ/suất)</option>
+                            <option value="Tặng quà">🎁 HN BOSS Tặng quà (Định mức 65.000đ/bộ cốc 6)</option>
+                        </select>
+                    </div>
+
+                    <!-- TVV & TEAM -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1" id="labelTeamInvited">Tên TVV / Nhóm phụ trách mời khách</label>
+                            <input type="text" id="actTeamInvited" placeholder="Ví dụ: N. Hạnh Phúc (TN Diện), QLTT PHHT..." class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1" id="labelTvvNames">Danh sách Tên các TVV tham dự</label>
+                            <input type="text" id="actTvvNames" placeholder="Ví dụ: Phỏng, Thươi, Triệu, Diện, Hương..." class="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- CUSTOM COST PER GUEST -->
+                    <div id="customCostPerGuestContainer" class="p-3 bg-amber-50 rounded-xl border border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-amber-800 mb-1" id="labelCostPerGuest">Mức chi phí hỗ trợ / KH (Nghìn VNĐ/người) *</label>
+                            <input type="number" id="actCostPerGuest" oninput="calcBudget()" placeholder="Ví dụ: 80 hoặc 150 (nghìn đ)" class="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-amber-900">
+                        </div>
+                        <div class="flex items-center text-xs text-amber-700 font-medium pt-4">
+                            <span id="hintCostPerGuest">Nhập đơn vị nghìn (VD: 80 = 80.000đ). Hỗ trợ KH tối đa 1.600.000đ</span>
+                        </div>
+                    </div>
+
+                    <!-- NUMERICAL TRACKING -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white p-3 rounded-xl border border-bvblue-100 shadow-sm">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600">Số TVV tham dự</label>
+                            <input type="number" id="actTvvCount" oninput="calcBudget()" placeholder="0" class="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-bvblue-700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600" id="labelGuestPlan">Khách KH</label>
+                            <input type="number" id="actGuestPlan" placeholder="0" class="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-600" id="labelGuestCount">Khách Thực tế</label>
+                            <input type="number" id="actGuestCount" oninput="calcBudget()" placeholder="0" class="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-emerald-700">
+                        </div>
+                        <div id="closedContractsContainer">
+                            <label class="block text-[10px] font-bold text-gray-600">HĐ Chốt ngay</label>
+                            <input type="number" id="actClosedContracts" placeholder="0" class="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-purple-700">
+                        </div>
+                    </div>
+
+                    <!-- SPEAKER & TRANSPORT FEES (NGHÌN VNĐ) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-sky-50 rounded-xl border border-sky-200">
+                        <div>
+                            <label class="block text-[11px] font-bold text-sky-800 mb-1">Chi phí Thuyết Trình (Nghìn VNĐ)</label>
+                            <input type="number" id="actSpeakerFee" oninput="calcBudget()" placeholder="Ví dụ: 300 (nghìn đ)" class="w-full px-3 py-1.5 bg-white border border-sky-300 rounded-lg text-xs font-bold text-sky-900">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-sky-800 mb-1">Chi phí Hỗ Trợ Xe di chuyển (Nghìn VNĐ)</label>
+                            <input type="number" id="actTransportFee" oninput="calcBudget()" placeholder="Ví dụ: 500 (nghìn đ)" class="w-full px-3 py-1.5 bg-white border border-sky-300 rounded-lg text-xs font-bold text-sky-900">
+                        </div>
+                    </div>
+
+                    <!-- FYP & BOSS BVLN -->
+                    <div id="generalFypContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-amber-700 mb-1">Doanh thu ĐĂNG KÝ sau HN (FYP - triệu đ)</label>
+                            <input type="number" step="0.1" id="actFypRegistered" placeholder="Ví dụ: 150 (trđ)" class="w-full px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-xs font-extrabold text-amber-800">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-700 mb-1">Doanh thu KÝ THỰC TẾ sau 5 ngày (T+5)</label>
+                            <input type="number" step="0.1" id="actFyp" placeholder="Doanh thu ký trong vòng 5 ngày kể từ ngày HN" class="w-full px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-xs font-extrabold text-emerald-800">
+                        </div>
+                    </div>
+
+                    <div id="bossBvlnContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-indigo-800 mb-1">Ứng viên đăng ký học BVLN (Số lượng UV)</label>
+                            <input type="number" id="actRegBvln" placeholder="Ví dụ: 5 (Ứng viên)" class="w-full px-3 py-1.5 bg-white border border-indigo-300 rounded-lg text-xs font-extrabold text-indigo-900">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-emerald-800 mb-1">Ứng viên tham dự học thực tế (Số lượng UV)</label>
+                            <input type="number" id="actActBvln" placeholder="Ví dụ: 4 (Ứng viên)" class="w-full px-3 py-1.5 bg-white border border-emerald-300 rounded-lg text-xs font-extrabold text-emerald-900">
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] font-bold text-bvblue-900 bg-white p-3 rounded-xl border border-bvblue-200 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <span>Tổng Chi Phí Đầu Tư Cho 1 Hội Nghị:</span>
+                            <strong id="calculatedSupport" class="text-bvblue-700 font-black text-sm">0 VNĐ</strong>
+                        </div>
+                        <div id="supportDetail" class="text-[10px] text-gray-500 font-medium"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Địa bàn / Ghi chú bổ sung</label>
+                    <textarea id="actNotes" rows="2" placeholder="Ví dụ: Mường La (40km), chuẩn bị quà tặng, tài liệu..." class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900 resize-none"></textarea>
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" id="deleteEditingActivityButton" onclick="deleteEditingActivity()" class="hidden mr-auto px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-bold rounded-xl transition"><i class="fa-solid fa-trash-can mr-1"></i>Xóa kế hoạch này</button>
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-xl transition">Hủy</button>
+                    <button type="submit" class="px-5 py-2 bg-bvblue-600 hover:bg-bvblue-700 text-white text-xs font-bold rounded-xl shadow-md transition">Lưu lịch & Kết quả</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DESTRUCTIVE RESET: scoped by day, week, or month -->
+    <div id="resetPlanModal" class="fixed inset-0 bg-bvblue-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="resetPlanTitle">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-red-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                <div>
+                    <h2 id="resetPlanTitle" class="text-lg font-extrabold text-red-700"><i class="fa-solid fa-trash-can mr-2"></i>Xóa kế hoạch theo kỳ</h2>
+                    <p class="text-xs text-gray-500 mt-1">Chọn đúng ngày, tuần hoặc tháng cần xóa. Dữ liệu đã xóa không thể khôi phục.</p>
+                </div>
+                <button onclick="closeResetModal()" class="text-gray-400 hover:text-gray-700" aria-label="Đóng"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="mt-4 space-y-4">
+                <div>
+                    <label for="resetScope" class="block text-xs font-bold text-gray-700 mb-1">Phạm vi xóa</label>
+                    <select id="resetScope" onchange="updateResetControls()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800">
+                        <option value="month">Tháng</option><option value="week">Tuần</option><option value="day">Ngày</option>
+                    </select>
+                </div>
+                <div id="resetMonthField">
+                    <label for="resetMonthInput" class="block text-xs font-bold text-gray-700 mb-1">Tháng cần xóa</label>
+                    <input id="resetMonthInput" type="month" onchange="updateResetPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                </div>
+                <div id="resetWeekField" class="hidden">
+                    <label for="resetWeekInput" class="block text-xs font-bold text-gray-700 mb-1">Chọn một ngày thuộc tuần cần xóa</label>
+                    <input id="resetWeekInput" type="date" onchange="updateResetPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                </div>
+                <div id="resetDayField" class="hidden">
+                    <label for="resetDayInput" class="block text-xs font-bold text-gray-700 mb-1">Ngày cần xóa</label>
+                    <input id="resetDayInput" type="date" onchange="updateResetPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm">
+                </div>
+                <div id="resetImpact" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900" aria-live="polite">Đang tính số kế hoạch sẽ bị xóa…</div>
+                <div class="flex items-center justify-between gap-3 text-xs text-gray-600"><span>Nên sao lưu dữ liệu trước khi xóa.</span><button onclick="exportData()" class="font-bold text-bvblue-700 hover:underline whitespace-nowrap"><i class="fa-solid fa-download mr-1"></i>Sao lưu JSON</button></div>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button onclick="closeResetModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-xl">Hủy</button>
+                    <button id="resetDeleteButton" onclick="resetSelectedPlans()" class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl"><i class="fa-solid fa-trash-can mr-1"></i>Xóa kế hoạch đã chọn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT EXPORT MODAL -->
+    <div id="reportModal" class="fixed inset-0 bg-bvblue-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl border border-gray-100 max-h-[92vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                <div>
+                    <h2 id="reportModalTitle" class="text-lg font-extrabold text-bvblue-800"><i class="fa-solid fa-file-export mr-2 text-bvyellow-500"></i>Xuất báo cáo</h2>
+                    <p class="text-xs text-gray-500 mt-1">Chọn kỳ báo cáo, sau đó tải về định dạng mong muốn.</p>
+                </div>
+                <button onclick="closeReportModal()" class="text-gray-400 hover:text-gray-700" aria-label="Đóng"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <div><label for="reportStartDate" class="block text-xs font-bold text-gray-700 mb-1">Từ ngày</label><input id="reportStartDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
+                <div><label for="reportEndDate" class="block text-xs font-bold text-gray-700 mb-1">Đến ngày</label><input id="reportEndDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
+            </div>
+            <div id="reportPreview" class="mt-3 rounded-xl bg-bvblue-50 border border-bvblue-100 p-3 text-xs font-semibold text-bvblue-900" aria-live="polite"></div>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button onclick="exportReportExcel()" class="px-3 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-extrabold"><i class="fa-solid fa-file-excel mr-1.5"></i>Excel (.xlsx)</button>
+                <button onclick="exportReportPoster()" class="px-3 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-extrabold"><i class="fa-solid fa-image mr-1.5"></i>Poster (.png)</button>
+                <button onclick="exportReportPptx()" class="px-3 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-extrabold"><i class="fa-solid fa-file-powerpoint mr-1.5"></i>PowerPoint (.pptx)</button>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-3"><strong>Excel</strong> gồm sheet tổng hợp và chi tiết; <strong>Poster</strong> là ảnh tóm tắt; <strong>PowerPoint</strong> tối đa 12 trang. Nếu khoảng thời gian có nhiều lịch chi tiết, dùng Excel để bảo đảm đủ dữ liệu.</p>
+            <div class="flex justify-end pt-4 mt-3 border-t border-gray-100"><button onclick="closeReportModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-xl">Đóng</button></div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-bvblue-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 border border-bvblue-600">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-bvyellow-400 text-lg"></i>
+        <span id="toastMsg" class="text-xs font-semibold">Thông báo thành công</span>
+    </div>
+
+    <script>
+        let activities = JSON.parse(localStorage.getItem('bv_activities_data_v15')) || [];
+        let currentWeekStart = getMonday(getVietnamNow());
+        let currentDate = getVietnamNow();
+        let currentView = 'matrix';
+        let mainTab = 'calendar';
+
+        window.onload = function() {
+            if(localStorage.getItem('bv_activities_data_v15') === null) {
+                seedInitialDataFromExcel();
+            }
+            purgeNovember2026PlansOnce();
+            renderMatrix();
+            renderCalendar();
+            renderGroupTable();
+            renderTvnnTable();
+            renderBossTable();
+            updateDashboard();
+            updateVietnamClock();
+            setInterval(updateVietnamClock, 1000);
+            document.addEventListener('click', function(event) {
+                const wrapper = document.getElementById('utilityMenuWrapper');
+                if (wrapper && !wrapper.contains(event.target)) closeUtilityMenu();
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') closeUtilityMenu();
+            });
+        }
+
+        function toggleUtilityMenu(event) {
+            if (event) event.stopPropagation();
+            const panel = document.getElementById('utilityMenuPanel');
+            const button = document.getElementById('utilityMenuToggle');
+            if (!panel || !button) return;
+            const willOpen = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !willOpen);
+            button.setAttribute('aria-expanded', String(willOpen));
+            button.title = willOpen ? 'Đóng menu thao tác' : 'Mở menu thao tác';
+        }
+
+        function closeUtilityMenu() {
+            const panel = document.getElementById('utilityMenuPanel');
+            const button = document.getElementById('utilityMenuToggle');
+            if (panel) panel.classList.add('hidden');
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+                button.title = 'Mở menu thao tác';
+            }
+        }
+
+        function purgeNovember2026PlansOnce() {
+            const marker = 'bv_v17_november_2026_cleanup_done';
+            if (localStorage.getItem(marker) === '1') return;
+            const before = activities.length;
+            activities = activities.filter(item => !String(item.date || '').startsWith('2026-11-'));
+            const removed = before - activities.length;
+            if (removed > 0) saveToStorage();
+            localStorage.setItem(marker, '1');
+            if (removed > 0) {
+                window.setTimeout(() => showToast(`Đã xóa ${removed} kế hoạch tháng 11/2026. Các tháng khác được giữ nguyên.`, 'fa-trash-can'), 350);
+            }
+        }
+
+        function getVietnamNow() {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+            }).formatToParts(new Date());
+            const values = Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+            return new Date(Number(values.year), Number(values.month) - 1, Number(values.day), Number(values.hour), Number(values.minute), Number(values.second));
+        }
+
+        function updateVietnamClock() {
+            const clock = document.getElementById('vietnamClock');
+            if (!clock) return;
+            clock.innerText = new Intl.DateTimeFormat('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+            }).format(new Date()) + ' (GMT+7)';
+        }
+
+        function getMonday(d) {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(date.setDate(diff));
+        }
+
+        function formatDateIso(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getSessionFromTime(timeValue) {
+            if (!timeValue || !/^\d{2}:\d{2}$/.test(timeValue)) return null;
+            const hour = Number(timeValue.slice(0, 2));
+            if (hour < 12) return 'Sáng';
+            if (hour < 18) return 'Chiều';
+            return 'Tối';
+        }
+
+        function syncSessionFromTime() {
+            const timeInput = document.getElementById('actTime');
+            const sessionSelect = document.getElementById('actSession');
+            if (!timeInput || !sessionSelect) return;
+            const inferredSession = getSessionFromTime(timeInput.value);
+            if (inferredSession) sessionSelect.value = inferredSession;
+        }
+
+        function seedInitialDataFromExcel() {
+            activities = [
+                { id: 'ex-0', title: 'Rà soát chứng từ ngân hàng & Báo cáo CIF', date: '2026-11-02', session: 'Sáng', category: 'Hành chính', priority: 'AD', status: 'COMPLETED', notes: 'Bàn giao văn thư' },
+                { id: 'ex-1', title: 'Họp PTKD Công ty', date: '2026-11-02', session: 'Sáng', category: 'Họp hành', priority: 'Công ty', status: 'COMPLETED', notes: '' },
+                { id: 'ex-2', title: 'Họp chi bộ (14h) & Họp Phòng (16h)', date: '2026-11-02', session: 'Chiều', category: 'Họp hành', priority: 'Phòng', status: 'COMPLETED', notes: 'Họp phòng ban cấp Phòng' },
+                { id: 'ex-3', title: 'Họp 1:1 TB Giót (8h30), TN Hiền (9h30)', date: '2026-11-03', session: 'Sáng', category: 'Họp hành', priority: 'AD', status: 'COMPLETED', notes: '' },
+                { id: 'ex-5', title: 'Tổ chức BOSS P.PTKD 3', date: '2026-11-03', session: 'Tối', category: 'HN BOSS Tuyển dụng', bossFormat: 'Tự điền', costPerGuest: 150, priority: 'Phòng', status: 'COMPLETED', notes: '', teamInvited: 'P.PTKD 3', tvvNames: 'Hiền, Hương, Mai Anh', tvvCount: 12, guestPlan: 25, guestCount: 22, regBvln: 8, actBvln: 6, speakerFee: 200, transportFee: 300 },
+                { id: 'ex-12', title: 'Di chuyển Mường La họp cùng TN Diện', date: '2026-11-06', session: 'Chiều', category: 'HN Nhóm', groupFormat: 'Tiệc mặn', costPerGuest: 150, priority: 'Nhóm', status: 'COMPLETED', notes: 'Mường La (40km)' },
+                { id: 'ex-13', title: 'HN Chiềng Lao - N Hạnh Phúc', date: '2026-11-06', session: 'Tối', category: 'HN Nhóm', groupFormat: 'Tiệc mặn', costPerGuest: 200, priority: 'Nhóm', status: 'COMPLETED', notes: 'Chiềng Lao (90km)', teamInvited: 'N Hạnh Phúc (TN Diện)', tvvNames: 'Diện, Hà, Việt', tvvCount: 15, guestPlan: 30, guestCount: 28, closedContracts: 6, fypRegistered: 120, fyp: 105, speakerFee: 300, transportFee: 500 },
+                { id: 'ex-25', title: 'HN Mường La - N Hạnh Phúc', date: '2026-11-13', session: 'Tối', category: 'TVNN Tiệc mặn', priority: 'Nhóm', status: 'UPCOMING', notes: 'Tiệc mặn cố định 500k/cuộc', teamInvited: 'N Hạnh Phúc', tvvNames: 'Diện, Đoàn, Việt', tvvCount: 10, guestPlan: 25, guestCount: 20, closedContracts: 3, fypRegistered: 90, fyp: 75 },
+                { id: 'ex-27', title: 'HN Công ty - Quyết Thắng', date: '2026-11-14', session: 'Tối', category: 'TVNN Tặng quà', priority: 'Công ty', status: 'UPCOMING', notes: 'Tặng quà 65k', teamInvited: 'N Quyết Thắng', tvvNames: 'Giót, Thu', tvvCount: 25, guestPlan: 50, guestCount: 45, closedContracts: 8, fypRegistered: 180, fyp: 160 }
+            ];
+            saveToStorage();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('bv_activities_data_v15', JSON.stringify(activities));
+        }
+
+        function switchMainTab(tab) {
+            mainTab = tab;
+            document.getElementById('sectionCalendar').classList.toggle('hidden', tab !== 'calendar');
+            document.getElementById('sectionGroup').classList.toggle('hidden', tab !== 'group');
+            document.getElementById('sectionTvnn').classList.toggle('hidden', tab !== 'tvnn');
+            document.getElementById('sectionBoss').classList.toggle('hidden', tab !== 'boss');
+
+            const btnCal = document.getElementById('mainTabCalendar');
+            const btnGro = document.getElementById('mainTabGroup');
+            const btnTvn = document.getElementById('mainTabTvnn');
+            const btnBos = document.getElementById('mainTabBoss');
+
+            const activeClass = "px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm bg-bvblue-600 text-white flex items-center";
+            const inactiveClass = "px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center";
+
+            btnCal.className = tab === 'calendar' ? activeClass : inactiveClass;
+            btnGro.className = tab === 'group' ? activeClass : inactiveClass;
+            btnTvn.className = tab === 'tvnn' ? activeClass : inactiveClass;
+            btnBos.className = tab === 'boss' ? activeClass : inactiveClass;
+
+            if(tab === 'group') renderGroupTable();
+            if(tab === 'tvnn') renderTvnnTable();
+            if(tab === 'boss') renderBossTable();
+        }
+
+        function switchView(mode) {
+            currentView = mode;
+            document.getElementById('matrixView').classList.toggle('hidden', mode !== 'matrix');
+            document.getElementById('calendarView').classList.toggle('hidden', mode !== 'calendar');
+            document.getElementById('listView').classList.toggle('hidden', mode !== 'list');
+
+            const mBtn = document.getElementById('viewMatrixBtn');
+            const cBtn = document.getElementById('viewCalBtn');
+            const lBtn = document.getElementById('viewListBtn');
+
+            const activeClass = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm bg-bvblue-600 text-white";
+            const inactiveClass = "flex-1 md:flex-none px-4 py-2 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-900 transition-all";
+
+            mBtn.className = mode === 'matrix' ? activeClass : inactiveClass;
+            cBtn.className = mode === 'calendar' ? activeClass : inactiveClass;
+            lBtn.className = mode === 'list' ? activeClass : inactiveClass;
+
+            applyFilters();
+        }
+
+        function changeWeek(delta) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+            renderMatrix();
+        }
+
+        function goToCurrentWeek() {
+            currentWeekStart = getMonday(getVietnamNow());
+            renderMatrix();
+        }
+
+        function renderMatrix() {
+            const tbody = document.getElementById('matrixTbody');
+            tbody.innerHTML = '';
+
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(currentWeekStart);
+                d.setDate(d.getDate() + i);
+                days.push(d);
+            }
+
+            const dayKeys = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+            
+            dayKeys.forEach((key, idx) => {
+                const th = document.getElementById(`th-${key}`);
+                const dateStr = `${days[idx].getDate()}/${days[idx].getMonth() + 1}`;
+                th.innerHTML = `${dayNames[idx]}<br><span class="text-[10px] font-normal opacity-90">${dateStr}</span>`;
+            });
+
+            const startDateStr = `${days[0].getDate()}/${days[0].getMonth() + 1}/${days[0].getFullYear()}`;
+            const endDateStr = `${days[6].getDate()}/${days[6].getMonth() + 1}/${days[6].getFullYear()}`;
+            document.getElementById('matrixWeekLabel').innerHTML = `<i class="fa-solid fa-table-cells-large mr-2 text-bvblue-500"></i> Lịch Tuần (${startDateStr} - ${endDateStr})`;
+
+            const filtered = getFilteredActivities();
+            const sessions = ['Sáng', 'Chiều', 'Tối'];
+
+            sessions.forEach(session => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50/50 transition";
+
+                let sessionIcon = '🌅';
+                let sessionColor = 'bg-sky-50 text-sky-800';
+                if (session === 'Chiều') { sessionIcon = '☀️'; sessionColor = 'bg-amber-50 text-amber-800'; }
+                if (session === 'Tối') { sessionIcon = '🌙'; sessionColor = 'bg-indigo-50 text-indigo-800'; }
+
+                let html = `<td class="p-3 border border-gray-200 font-extrabold text-center ${sessionColor}">
+                    <span class="text-base block mb-1">${sessionIcon}</span>${session}
+                </td>`;
+
+                days.forEach(d => {
+                    const dateIso = formatDateIso(d);
+                    const cellItems = filtered.filter(a => a.date === dateIso && a.session === session);
+
+                    html += `<td class="p-2 border border-gray-200 align-top min-h-[100px] hover:bg-bvblue-50/20 transition relative group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-gray-400"></span>
+                            <button onclick="openModal('${dateIso}', '${session}')" class="opacity-0 group-hover:opacity-100 text-bvblue-600 text-[10px] p-0.5 hover:scale-125 transition">
+                                <i class="fa-solid fa-circle-plus"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-1.5 overflow-y-auto max-h-[130px] custom-scrollbar">`;
+
+                    cellItems.forEach(item => {
+                        let bgTag = 'bg-bvblue-50 border-bvblue-300 text-bvblue-800';
+                        if (item.category === 'Hành chính') bgTag = 'bg-slate-100 border-slate-300 text-slate-800';
+                        if (item.priority === 'Công ty') bgTag = 'bg-red-50 border-red-300 text-red-800';
+                        if (item.priority === 'Phòng') bgTag = 'bg-purple-100 border-purple-300 text-purple-900';
+                        if (item.category.includes('HN') || item.category.startsWith('TVNN')) bgTag = 'bg-amber-50 border-amber-300 text-amber-900';
+
+                        let statusDot = item.status === 'COMPLETED' ? '🟢' : item.status === 'CANCELLED' ? '🔴' : '🟡';
+                        let tagInfo = '';
+                        if (item.category === 'HN BOSS Tuyển dụng') {
+                            if (item.actBvln) tagInfo = `<span class="ml-1 text-[9px] font-extrabold text-indigo-700 bg-indigo-100 px-1 rounded">${item.actBvln} UV học</span>`;
+                        } else if (item.fyp) {
+                            tagInfo = `<span class="ml-1 text-[9px] font-extrabold text-emerald-700 bg-emerald-100 px-1 rounded">${item.fyp}tr (T+5)</span>`;
+                        }
+
+                        html += `
+                            <div onclick="editActivity('${item.id}')" class="p-1.5 rounded-lg border text-[11px] font-semibold leading-tight shadow-sm cursor-pointer hover:shadow-md transition ${bgTag}">
+                                <div class="font-bold flex items-center justify-between gap-1 mb-0.5">
+                                    <span class="truncate">${statusDot} ${item.time ? `<span class="text-[10px]">${escapeHtml(item.time)}</span> ` : ''}${escapeHtml(item.title)}</span>
+                                    ${tagInfo}
+                                </div>
+                                ${item.notes ? `<div class="text-[10px] opacity-85 text-gray-600"><i class="fa-solid fa-location-dot text-[9px] mr-1 text-bvyellow-500"></i>${escapeHtml(item.notes)}</div>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></td>`;
+                });
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function changeMonth(delta) {
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentDate = getVietnamNow();
+            renderCalendar();
+        }
+
+        function showTodayOnCalendar() {
+            currentDate = getVietnamNow();
+            switchView('calendar');
+            document.getElementById('calendarView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+            document.getElementById('currentMonthYear').innerText = `${monthNames[month]}, ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            let startingDay = (firstDay.getDay() + 6) % 7;
+
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            const filtered = getFilteredActivities();
+
+            for (let i = startingDay - 1; i >= 0; i--) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = "min-h-[180px] p-2 bg-gray-50/50 rounded-xl border border-dashed border-gray-200 opacity-40";
+                dayDiv.innerHTML = `<span class="text-xs font-semibold text-gray-400">${prevMonthDays - i}</span>`;
+                grid.appendChild(dayDiv);
+            }
+
+            const todayIso = formatDateIso(getVietnamNow());
+
+            for (let d = 1; d <= totalDays; d++) {
+                const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isToday = dateIso === todayIso;
+
+                const dayDiv = document.createElement('div');
+                dayDiv.className = `min-h-[180px] p-2 rounded-xl border flex flex-col justify-between ${
+                    isToday ? 'bg-bvblue-50/40 border-bvblue-500 shadow-md ring-2 ring-bvblue-400' : 'bg-white border-gray-200 hover:border-gray-400'
+                }`;
+
+                let cellHeader = `
+                    <div class="flex justify-between items-center mb-1.5 pb-1 border-b border-gray-100">
+                        <span class="text-xs font-extrabold ${isToday ? 'w-5 h-5 bg-bvblue-600 text-white rounded-full flex items-center justify-center' : 'text-gray-800'}">${d}</span>
+                        <button onclick="openModal('${dateIso}')" class="text-bvblue-600 text-xs p-0.5 hover:scale-125 transition font-bold" title="Thêm lịch"><i class="fa-solid fa-plus-circle"></i></button>
+                    </div>
+                `;
+
+                const dayItems = filtered.filter(a => a.date === dateIso);
+                
+                const sangItems = dayItems.filter(a => a.session === 'Sáng');
+                const chieuItems = dayItems.filter(a => a.session === 'Chiều');
+                const toiItems = dayItems.filter(a => a.session === 'Tối');
+
+                function renderSessionBlock(sessionLabel, icon, items, textClass) {
+                    let html = `<div class="mb-1">`;
+                    html += `<div class="text-[10px] font-bold ${textClass} flex items-center mb-0.5"><span class="mr-1">${icon}</span>${sessionLabel}</div>`;
+                    if(items.length === 0) {
+                        html += `<div class="text-[9px] text-gray-300 italic pl-1">--</div>`;
+                    } else {
+                        items.forEach(item => {
+                            let badgeBg = 'bg-bvblue-50 text-bvblue-800 border-bvblue-200';
+                            if (item.category === 'Hành chính') badgeBg = 'bg-slate-100 text-slate-800 border-slate-300';
+                            if (item.priority === 'Công ty') badgeBg = 'bg-red-50 text-red-800 border-red-200';
+                            if (item.priority === 'Phòng') badgeBg = 'bg-purple-100 text-purple-900 border-purple-300';
+                            if (item.category.includes('HN') || item.category.startsWith('TVNN')) badgeBg = 'bg-amber-50 text-amber-900 border-amber-200';
+                            
+                            html += `
+                                <div onclick="editActivity('${item.id}')" class="px-1.5 py-1 mb-1 rounded border text-[10px] font-semibold truncate cursor-pointer hover:shadow-sm transition ${badgeBg}" title="${escapeHtml(item.title)}">
+                                    ${item.time ? `<span class="font-extrabold">${escapeHtml(item.time)}</span> ` : ''}${escapeHtml(item.title)}
+                                </div>
+                            `;
+                        });
+                    }
+                    html += `</div>`;
+                    return html;
+                }
+
+                let itemsHtml = `<div class="space-y-1 overflow-y-auto max-h-[145px] custom-scrollbar pr-0.5">`;
+                itemsHtml += renderSessionBlock('Sáng', '🌅', sangItems, 'text-sky-700');
+                itemsHtml += renderSessionBlock('Chiều', '☀️', chieuItems, 'text-amber-700');
+                itemsHtml += renderSessionBlock('Tối', '🌙', toiItems, 'text-indigo-700');
+                itemsHtml += `</div>`;
+
+                dayDiv.innerHTML = cellHeader + itemsHtml;
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function renderList() {
+            const listEl = document.getElementById('activityList');
+            const items = getFilteredActivities();
+            document.getElementById('listCountBadge').innerText = `${items.length} mục`;
+
+            if(items.length === 0) {
+                listEl.innerHTML = `<div class="p-12 text-center text-gray-400 text-xs font-semibold">Chưa có lịch hoạt động nào.</div>`;
+                return;
+            }
+
+            items.sort((a, b) => `${a.date}T${a.time || '00:00'}`.localeCompare(`${b.date}T${b.time || '00:00'}`));
+
+            listEl.innerHTML = items.map(item => `
+                <div class="p-4 hover:bg-bvblue-50/40 transition flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-bvblue-50 text-bvblue-700 flex items-center justify-center font-bold text-sm shrink-0 border border-bvblue-200">
+                            ${item.session === 'Sáng' ? '🌅' : item.session === 'Chiều' ? '☀️' : '🌙'}
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h4 class="font-bold text-sm text-gray-900">${escapeHtml(item.title)}</h4>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${item.priority === 'Phòng' ? 'bg-purple-100 text-purple-800' : 'bg-bvblue-100 text-bvblue-700'}">${item.priority}</span>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">${item.category}</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1 font-medium">
+                                <span><i class="fa-regular fa-calendar mr-1 text-bvblue-500"></i> ${item.date} (${item.session})${item.time ? ` · ${escapeHtml(item.time)}` : ''}</span>
+                                ${item.teamInvited ? `<span>• TVV/Nhóm: <strong>${escapeHtml(item.teamInvited)}</strong></span>` : ''}
+                                ${item.category === 'HN BOSS Tuyển dụng' ? 
+                                    `<span>• Ứng viên: <strong>${item.guestCount || 0}</strong> dự | Đăng ký BVLN: <strong>${item.regBvln || 0}</strong> | Học thực tế: <strong class="text-emerald-600">${item.actBvln || 0} UV</strong></span>` :
+                                    `${item.guestCount ? `<span>• Khách: <strong>${item.guestCount}</strong> dự (${item.closedContracts || 0} HĐ)</span>` : ''}
+                                     ${item.fyp ? `<span>• FYP T+5: <strong class="text-emerald-600">${item.fyp} trđ</strong></span>` : ''}`
+                                }
+                            </div>
+                            ${item.notes ? `<p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-location-dot mr-1 text-bvyellow-500"></i> ${escapeHtml(item.notes)}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="editActivity('${item.id}')" class="p-2 text-gray-400 hover:text-bvblue-600" title="Chỉnh sửa / Cập nhật kết quả"><i class="fa-solid fa-pen-to-square text-base"></i></button>
+                        <button onclick="deleteActivity('${item.id}')" class="p-2 text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderGroupTable() {
+            const tbody = document.getElementById('groupTableBody');
+            const items = activities.filter(a => a.category === 'HN Nhóm');
+            
+            let totalGuests = 0;
+            let totalCost = 0;
+            let totalFyp = 0;
+
+            if(items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu HN cấp Nhóm. Nhấn "Thêm HN cấp Nhóm" để tạo.</td></tr>`;
+            } else {
+                tbody.innerHTML = items.map(item => {
+                    const guest = parseInt(item.guestCount) || 0;
+                    const format = item.groupFormat || 'Tiệc mặn';
+                    const costPerGuest = parseFloat(item.costPerGuest) || 0;
+                    let speakerFee = parseFloat(item.speakerFee) || 0;
+                    if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+                    let transportFee = parseFloat(item.transportFee) || 0;
+                    if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+                    
+                    let guestSupport = 0;
+                    let normCostPer = costPerGuest > 0 && costPerGuest < 1000 ? costPerGuest * 1000 : costPerGuest;
+                    if (format === 'Tiệc mặn') {
+                        guestSupport = Math.min(1600000, guest * normCostPer);
+                    } else {
+                        guestSupport = Math.min(20, guest) * 25000;
+                    }
+
+                    const totalInvest = guestSupport + speakerFee + transportFee;
+
+                    totalGuests += guest;
+                    totalCost += totalInvest;
+                    totalFyp += parseFloat(item.fyp) || 0;
+
+                    return `
+                        <tr class="hover:bg-indigo-50/50 transition">
+                            <td class="p-3 border-b font-bold text-gray-800">${item.date}<br><span class="text-[10px] text-gray-400 font-normal">${item.session}${item.time ? ` · ${escapeHtml(item.time)}` : ''}</span></td>
+                            <td class="p-3 border-b font-extrabold text-indigo-900">${escapeHtml(item.title)}<br><span class="text-[10px] font-normal text-gray-500"><i class="fa-solid fa-location-dot mr-1 text-bvyellow-500"></i>${escapeHtml(item.notes || '--')}</span></td>
+                            <td class="p-3 border-b font-bold ${format === 'Tiệc mặn' ? 'text-amber-700' : 'text-rose-700'}">
+                                ${format === 'Tiệc mặn' ? `🍲 Tiệc mặn (${normCostPer.toLocaleString('vi-VN')}đ/KH)` : '🎁 Tặng quà (25k/KH)'}
+                            </td>
+                            <td class="p-3 border-b text-center font-bold text-gray-800">${guest} <span class="text-[10px] text-gray-400 font-normal">(KH: ${item.guestPlan || 0})</span></td>
+                            <td class="p-3 border-b text-right font-bold text-amber-800">${guestSupport.toLocaleString('vi-VN')} đ</td>
+                            <td class="p-3 border-b text-right font-medium text-sky-700">
+                                TH: ${(speakerFee).toLocaleString('vi-VN')}đ | Xe: ${(transportFee).toLocaleString('vi-VN')}đ
+                            </td>
+                            <td class="p-3 border-b text-right font-extrabold text-bvblue-700">${totalInvest.toLocaleString('vi-VN')} đ</td>
+                            <td class="p-3 border-b text-right font-extrabold text-emerald-600">${item.fyp || 0} trđ</td>
+                            <td class="p-3 border-b text-center space-x-1">
+                                <button onclick="editActivity('${item.id}')" class="p-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('groupTotalCount').innerText = items.length;
+            document.getElementById('groupTotalGuests').innerText = totalGuests + ' khách';
+            document.getElementById('groupTotalCost').innerText = totalCost.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('groupTotalFyp').innerText = totalFyp.toFixed(1) + ' trđ';
+        }
+
+        function renderTvnnTable() {
+            const tbody = document.getElementById('tvnnTableBody');
+            const subFilter = document.getElementById('tvnnSubFilter').value;
+            
+            let items = activities.filter(a => a.category === 'TVNN Tiệc mặn' || a.category === 'TVNN Tặng quà');
+            if(subFilter !== 'ALL') {
+                items = items.filter(a => a.category === subFilter);
+            }
+            
+            let totalGuests = 0;
+            let totalFyp = 0;
+
+            if(items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu Hội nghị TVNN. Nhấn "Thêm HN TVNN" để tạo.</td></tr>`;
+            } else {
+                tbody.innerHTML = items.map(item => {
+                    const guest = parseInt(item.guestCount) || 0;
+                    totalGuests += guest;
+                    totalFyp += parseFloat(item.fyp) || 0;
+                    const isBanquet = item.category === 'TVNN Tiệc mặn';
+
+                    return `
+                        <tr class="hover:bg-amber-50/50 transition">
+                            <td class="p-3 border-b font-bold text-gray-800">${item.date}<br><span class="text-[10px] text-gray-400 font-normal">${item.session}${item.time ? ` · ${escapeHtml(item.time)}` : ''}</span></td>
+                            <td class="p-3 border-b font-extrabold text-amber-900">${escapeHtml(item.title)}<br><span class="text-[10px] font-normal text-gray-500"><i class="fa-solid fa-location-dot mr-1 text-bvyellow-500"></i>${escapeHtml(item.notes || '--')}</span></td>
+                            <td class="p-3 border-b font-bold ${isBanquet ? 'text-amber-700' : 'text-rose-700'}">
+                                ${isBanquet ? '🍲 Tiệc mặn (500k/cuộc)' : '🎁 Tặng quà (65k/bộ)'}
+                            </td>
+                            <td class="p-3 border-b font-semibold text-gray-700">${escapeHtml(item.teamInvited || '--')}<br><span class="text-[10px] text-gray-400">TVV: ${escapeHtml(item.tvvNames || '--')}</span></td>
+                            <td class="p-3 border-b text-center font-bold text-bvblue-700">${item.tvvCount || 0}</td>
+                            <td class="p-3 border-b text-center font-bold text-gray-800">${guest} <span class="text-[10px] text-gray-400 font-normal">(KH: ${item.guestPlan || 0})</span></td>
+                            <td class="p-3 border-b text-center font-extrabold text-purple-700">${item.closedContracts || 0} HĐ</td>
+                            <td class="p-3 border-b text-right font-extrabold text-emerald-600">${item.fyp || 0} trđ</td>
+                            <td class="p-3 border-b text-center space-x-1">
+                                <button onclick="editActivity('${item.id}')" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('tvnnTotalCount').innerText = items.length;
+            document.getElementById('tvnnTotalGuests').innerText = totalGuests + ' khách';
+            document.getElementById('tvnnTotalFyp').innerText = totalFyp.toFixed(1) + ' trđ';
+        }
+
+        function renderBossTable() {
+            const tbody = document.getElementById('bossTableBody');
+            const items = activities.filter(a => a.category === 'HN BOSS Tuyển dụng');
+            
+            let totalGuests = 0;
+            let totalRegBvln = 0;
+            let totalActBvln = 0;
+            let totalSupport = 0;
+
+            if(items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu HN BOSS Tuyển dụng. Nhấn "Thêm HN BOSS" để tạo.</td></tr>`;
+            } else {
+                tbody.innerHTML = items.map(item => {
+                    const guest = parseInt(item.guestCount) || 0;
+                    const regBvln = parseInt(item.regBvln) || 0;
+                    const actBvln = parseInt(item.actBvln) || 0;
+                    
+                    totalGuests += guest;
+                    totalRegBvln += regBvln;
+                    totalActBvln += actBvln;
+                    
+                    let supp = 0;
+                    const format = item.bossFormat || 'Tự điền';
+                    if (format === 'Tiệc mặn') supp = guest * 500000;
+                    else if (format === 'Tặng quà') supp = guest * 65000;
+                    else {
+                        let cp = parseFloat(item.costPerGuest) || 0;
+                        if (cp > 0 && cp < 1000) cp *= 1000;
+                        supp = guest * cp;
+                    }
+
+                    let speakerFee = parseFloat(item.speakerFee) || 0;
+                    if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+                    let transportFee = parseFloat(item.transportFee) || 0;
+                    if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+
+                    const totalInvest = supp + speakerFee + transportFee;
+                    totalSupport += totalInvest;
+
+                    return `
+                        <tr class="hover:bg-purple-50/50 transition">
+                            <td class="p-3 border-b font-bold text-gray-800">${item.date}<br><span class="text-[10px] text-gray-400 font-normal">${item.session}${item.time ? ` · ${escapeHtml(item.time)}` : ''}</span></td>
+                            <td class="p-3 border-b font-extrabold text-purple-900">${escapeHtml(item.title)}<br><span class="text-[10px] font-normal text-gray-500"><i class="fa-solid fa-location-dot mr-1 text-bvyellow-500"></i>${escapeHtml(item.notes || '--')}</span></td>
+                            <td class="p-3 border-b font-bold ${format === 'Tiệc mặn' ? 'text-amber-700' : format === 'Tặng quà' ? 'text-rose-700' : 'text-purple-700'}">
+                                ${format === 'Tiệc mặn' ? '🍲 Tiệc mặn (500k/suất)' : format === 'Tặng quà' ? '🎁 Tặng quà (65k/bộ)' : `✏️ Tự điền`}
+                            </td>
+                            <td class="p-3 border-b font-semibold text-gray-700">${escapeHtml(item.teamInvited || '--')}<br><span class="text-[10px] text-gray-400">TVV: ${escapeHtml(item.tvvNames || '--')}</span></td>
+                            <td class="p-3 border-b text-center font-bold text-bvblue-700">${item.tvvCount || 0}</td>
+                            <td class="p-3 border-b text-center font-bold text-gray-800">${item.guestCount || 0} <span class="text-[10px] text-gray-400 font-normal">(KH: ${item.guestPlan || 0})</span></td>
+                            <td class="p-3 border-b text-center font-extrabold text-indigo-800">${regBvln} UV</td>
+                            <td class="p-3 border-b text-center font-extrabold text-emerald-700">${actBvln} UV</td>
+                            <td class="p-3 border-b text-right font-extrabold text-bvblue-700">${totalInvest.toLocaleString('vi-VN')} đ</td>
+                            <td class="p-3 border-b text-center space-x-1">
+                                <button onclick="editActivity('${item.id}')" class="p-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('bossTotalCount').innerText = items.length;
+            document.getElementById('bossTotalGuests').innerText = totalGuests + ' ứng viên';
+            document.getElementById('bossTotalRegBvln').innerText = totalRegBvln + ' UV';
+            document.getElementById('bossTotalActBvln').innerText = totalActBvln + ' UV';
+        }
+
+        function getFilteredActivities() {
+            const search = document.getElementById('globalSearchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const pri = document.getElementById('priorityFilter').value;
+
+            return activities.filter(act => {
+                const searchStr = `${act.title} ${act.notes || ''} ${act.teamInvited || ''} ${act.tvvNames || ''}`.toLowerCase();
+                const matchesSearch = searchStr.includes(search);
+                const matchesCat = cat === 'ALL' || act.category === cat;
+                const matchesPri = pri === 'ALL' || act.priority === pri;
+                return matchesSearch && matchesCat && matchesPri;
+            });
+        }
+
+        function handleGlobalSearch() {
+            if (mainTab === 'calendar') applyFilters();
+            if (mainTab === 'group') renderGroupTable();
+            if (mainTab === 'tvnn') renderTvnnTable();
+            if (mainTab === 'boss') renderBossTable();
+        }
+
+        function resetPlanningView() {
+            document.getElementById('globalSearchInput').value = '';
+            document.getElementById('categoryFilter').value = 'ALL';
+            document.getElementById('priorityFilter').value = 'ALL';
+            document.getElementById('tvnnSubFilter').value = 'ALL';
+            currentDate = getVietnamNow();
+            currentWeekStart = getMonday(currentDate);
+            currentView = 'matrix';
+            switchMainTab('calendar');
+            switchView('matrix');
+            showToast('Đã đặt lại bộ lọc và đưa lịch về kỳ hiện tại. Kế hoạch vẫn được giữ nguyên.', 'fa-rotate-left');
+        }
+
+        function parseIsoLocal(value) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
+            const [year, month, day] = value.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function formatDateVietnam(value) {
+            const date = parseIsoLocal(value);
+            return date ? `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}` : value;
+        }
+
+        function openResetModal() {
+            const now = getVietnamNow();
+            const today = formatDateIso(now);
+            document.getElementById('resetScope').value = 'month';
+            document.getElementById('resetMonthInput').value = today.slice(0, 7);
+            document.getElementById('resetWeekInput').value = today;
+            document.getElementById('resetDayInput').value = today;
+            updateResetControls();
+            document.getElementById('resetPlanModal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetPlanModal').classList.add('hidden');
+        }
+
+        function getResetRange() {
+            const scope = document.getElementById('resetScope').value;
+            if (scope === 'month') {
+                const value = document.getElementById('resetMonthInput').value;
+                if (!/^\d{4}-\d{2}$/.test(value || '')) return null;
+                const [year, month] = value.split('-').map(Number);
+                return { start: `${value}-01`, end: formatDateIso(new Date(year, month, 0)), label: `tháng ${String(month).padStart(2, '0')}/${year}` };
+            }
+            const value = document.getElementById(scope === 'week' ? 'resetWeekInput' : 'resetDayInput').value;
+            const date = parseIsoLocal(value);
+            if (!date) return null;
+            if (scope === 'day') return { start: value, end: value, label: formatDateVietnam(value) };
+            const startDate = getMonday(date);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+            const start = formatDateIso(startDate), end = formatDateIso(endDate);
+            return { start, end, label: `${formatDateVietnam(start)}–${formatDateVietnam(end)}` };
+        }
+
+        function getResetMatches() {
+            const range = getResetRange();
+            if (!range) return { range: null, items: [] };
+            return { range, items: activities.filter(item => item.date >= range.start && item.date <= range.end) };
+        }
+
+        function updateResetControls() {
+            const scope = document.getElementById('resetScope').value;
+            document.getElementById('resetMonthField').classList.toggle('hidden', scope !== 'month');
+            document.getElementById('resetWeekField').classList.toggle('hidden', scope !== 'week');
+            document.getElementById('resetDayField').classList.toggle('hidden', scope !== 'day');
+            updateResetPreview();
+        }
+
+        function updateResetPreview() {
+            const { range, items } = getResetMatches();
+            const preview = document.getElementById('resetImpact');
+            const button = document.getElementById('resetDeleteButton');
+            button.disabled = !range || items.length === 0;
+            if (!range) {
+                preview.innerText = 'Vui lòng chọn kỳ hợp lệ để xem trước.';
+                return;
+            }
+            preview.innerHTML = `Phạm vi: <strong>${escapeHtml(range.label)}</strong><br>Số kế hoạch sẽ xóa: <strong>${items.length}</strong>. Chỉ lịch có ngày nằm trong phạm vi này bị xóa.`;
+            if (items.length === 0) preview.innerHTML += '<br>Không có lịch nào trong kỳ đã chọn.';
+        }
+
+        function refreshAllViews() {
+            renderMatrix();
+            renderCalendar();
+            renderGroupTable();
+            renderTvnnTable();
+            renderBossTable();
+            updateDashboard();
+        }
+
+        function resetSelectedPlans() {
+            const { range, items } = getResetMatches();
+            if (!range || !items.length) return;
+            const scope = document.getElementById('resetScope').value;
+            const scopeName = scope === 'month' ? 'tháng' : scope === 'week' ? 'tuần' : 'ngày';
+            const prompt = `XÁC NHẬN XÓA ${items.length} KẾ HOẠCH\n\nPhạm vi: ${scopeName} ${range.label}\n\nThao tác này không thể hoàn tác. Bạn có chắc chắn muốn xóa?`;
+            if (!confirm(prompt)) return;
+            const ids = new Set(items.map(item => item.id));
+            activities = activities.filter(item => !ids.has(item.id));
+            saveToStorage();
+            refreshAllViews();
+            closeResetModal();
+            showToast(`Đã xóa ${items.length} kế hoạch của ${scopeName} ${range.label}.`, 'fa-trash-can');
+        }
+
+        function applyFilters() {
+            if (currentView === 'matrix') renderMatrix();
+            else if (currentView === 'calendar') renderCalendar();
+            else renderList();
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            const total = activities.length;
+            const adminCount = activities.filter(a => a.category === 'Hành chính').length;
+            const events = activities.filter(a => a.category.includes('HN') || a.category.startsWith('TVNN')).length;
+            
+            let fypActualTotal = 0;
+            let supportTotal = 0;
+
+            activities.forEach(a => {
+                const fypAct = parseFloat(a.fyp) || 0;
+                fypActualTotal += fypAct;
+
+                const guest = parseInt(a.guestCount) || 0;
+                let speakerFee = parseFloat(a.speakerFee) || 0;
+                if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+                let transportFee = parseFloat(a.transportFee) || 0;
+                if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+
+                let guestSupport = 0;
+
+                if (a.category === 'HN Nhóm') {
+                    const format = a.groupFormat || 'Tiệc mặn';
+                    if (format === 'Tiệc mặn') {
+                        let costPer = parseFloat(a.costPerGuest) || 0;
+                        if (costPer > 0 && costPer < 1000) costPer *= 1000;
+                        guestSupport = Math.min(1600000, guest * costPer);
+                    } else {
+                        guestSupport = Math.min(20, guest) * 25000;
+                    }
+                } else if (a.category === 'HN Tặng quà') {
+                    const validGuests = Math.min(20, guest);
+                    guestSupport = validGuests * 25000;
+                } else if (a.category === 'TVNN Tiệc mặn') {
+                    guestSupport = 500000;
+                } else if (a.category === 'TVNN Tặng quà') {
+                    guestSupport = guest * 65000;
+                } else if (a.category === 'HN BOSS Tuyển dụng') {
+                    const format = a.bossFormat || 'Tự điền';
+                    if (format === 'Tiệc mặn') guestSupport = guest * 500000;
+                    else if (format === 'Tặng quà') guestSupport = guest * 65000;
+                    else {
+                        let costPer = parseFloat(a.costPerGuest) || 0;
+                        if (costPer > 0 && costPer < 1000) costPer *= 1000;
+                        guestSupport = guest * costPer;
+                    }
+                }
+
+                supportTotal += (guestSupport + speakerFee + transportFee);
+            });
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statAdmin').innerText = adminCount;
+            document.getElementById('statEvents').innerText = events;
+            document.getElementById('statFypActual').innerText = `${fypActualTotal.toFixed(1)} trđ`;
+            document.getElementById('fypRateBadge').innerText = 'Doanh thu ký T+5';
+            document.getElementById('statSupportTotal').innerText = supportTotal.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function openModal(defaultDate = null, defaultSession = 'Sáng') {
+            document.getElementById('activityForm').reset();
+            document.getElementById('activityId').value = '';
+            document.getElementById('deleteEditingActivityButton').classList.add('hidden');
+            document.getElementById('modalTitle').innerText = 'Thêm hoạt động / Sự kiện mới';
+            
+            document.getElementById('actDate').value = defaultDate || formatDateIso(getVietnamNow());
+            document.getElementById('actSession').value = defaultSession;
+            document.getElementById('actCategory').value = 'Họp hành';
+            toggleSpecialFields();
+
+            document.getElementById('activityModal').classList.remove('hidden');
+        }
+
+        function openModalForCategory(catName) {
+            openModal();
+            document.getElementById('actCategory').value = catName;
+            handleCategoryChange();
+        }
+
+        function handleCategoryChange() {
+            const category = document.getElementById('actCategory').value;
+            if (category === 'HN Phòng') {
+                document.getElementById('actPriority').value = 'Phòng';
+            }
+            toggleSpecialFields();
+        }
+
+        function closeModal() {
+            document.getElementById('activityModal').classList.add('hidden');
+        }
+
+        function toggleSpecialFields() {
+            const cat = document.getElementById('actCategory').value;
+            const sf = document.getElementById('specialFields');
+            const badge = document.getElementById('eventBadgeType');
+            const bossOpt = document.getElementById('bossSubOptionContainer');
+            const groupOpt = document.getElementById('groupFormatContainer');
+            const genFyp = document.getElementById('generalFypContainer');
+            const bossBvln = document.getElementById('bossBvlnContainer');
+            
+            const labelTeam = document.getElementById('labelTeamInvited');
+            const labelPlan = document.getElementById('labelGuestPlan');
+            const labelCount = document.getElementById('labelGuestCount');
+            const labelTvvNames = document.getElementById('labelTvvNames');
+            const closedCont = document.getElementById('closedContractsContainer');
+
+            if (cat.includes('HN') || cat.startsWith('TVNN')) {
+                sf.classList.remove('hidden');
+                badge.innerText = cat;
+
+                if (cat === 'HN BOSS Tuyển dụng') {
+                    bossOpt.classList.remove('hidden');
+                    groupOpt.classList.add('hidden');
+                    genFyp.classList.add('hidden');
+                    bossBvln.classList.remove('hidden');
+
+                    labelTeam.innerText = 'Tên TVV / Nhóm phụ trách mời Ứng viên';
+                    labelPlan.innerText = 'Ứng viên Kế hoạch';
+                    labelCount.innerText = 'Ứng viên Thực tế';
+                    closedCont.classList.add('hidden');
+                    toggleBossFormatFields();
+                } else {
+                    bossOpt.classList.add('hidden');
+                    genFyp.classList.remove('hidden');
+                    bossBvln.classList.add('hidden');
+
+                    labelTeam.innerText = 'Tên TVV / Nhóm phụ trách mời khách';
+                    labelPlan.innerText = 'Khách KH';
+                    labelCount.innerText = 'Khách Thực tế';
+                    labelTvvNames.innerText = cat === 'TVNN Tiệc mặn' ? 'Danh sách Tên các KH tham dự' : 'Danh sách Tên các TVV tham dự';
+                    closedCont.classList.remove('hidden');
+
+                    if (cat === 'HN Nhóm') {
+                        groupOpt.classList.remove('hidden');
+                        toggleGroupFormatFields();
+                    } else {
+                        groupOpt.classList.add('hidden');
+                        document.getElementById('customCostPerGuestContainer').classList.add('hidden');
+                    }
+                }
+
+                calcBudget();
+            } else {
+                sf.classList.add('hidden');
+            }
+        }
+
+        function toggleGroupFormatFields() {
+            const cat = document.getElementById('actCategory').value;
+            const customContainer = document.getElementById('customCostPerGuestContainer');
+            const labelCost = document.getElementById('labelCostPerGuest');
+            const hintCost = document.getElementById('hintCostPerGuest');
+
+            if (cat === 'HN Nhóm') {
+                const groupFormat = document.getElementById('actGroupFormat').value;
+                if (groupFormat === 'Tiệc mặn') {
+                    customContainer.classList.remove('hidden');
+                    labelCost.innerText = 'Mức chi phí hỗ trợ / KH (Nghìn VNĐ/người) *';
+                    hintCost.innerText = 'Nhập đơn vị nghìn (VD: 80 = 80.000đ). Hỗ trợ KH Tiệc mặn tối đa 1.6tr';
+                } else {
+                    customContainer.classList.add('hidden');
+                }
+            }
+            calcBudget();
+        }
+
+        function toggleBossFormatFields() {
+            const cat = document.getElementById('actCategory').value;
+            const customContainer = document.getElementById('customCostPerGuestContainer');
+            const labelCost = document.getElementById('labelCostPerGuest');
+            const hintCost = document.getElementById('hintCostPerGuest');
+
+            if (cat === 'HN BOSS Tuyển dụng') {
+                const bossFormat = document.getElementById('actBossFormat').value;
+                if (bossFormat === 'Tự điền') {
+                    customContainer.classList.remove('hidden');
+                    labelCost.innerText = 'Mức chi phí hỗ trợ / Ứng viên (Nghìn VNĐ/người) *';
+                    hintCost.innerText = 'Nhập đơn vị nghìn (VD: 80 = 80.000đ)';
+                } else {
+                    customContainer.classList.add('hidden');
+                }
+            }
+            calcBudget();
+        }
+
+        function calcBudget() {
+            const cat = document.getElementById('actCategory').value;
+            const guest = parseInt(document.getElementById('actGuestCount').value) || 0;
+            
+            let speakerFee = parseFloat(document.getElementById('actSpeakerFee').value) || 0;
+            if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+
+            let transportFee = parseFloat(document.getElementById('actTransportFee').value) || 0;
+            if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+
+            let guestSupport = 0;
+            let detail = '';
+
+            if (cat === 'HN Nhóm') {
+                const groupFormat = document.getElementById('actGroupFormat').value;
+                if (groupFormat === 'Tiệc mặn') {
+                    let costPerVal = parseFloat(document.getElementById('actCostPerGuest').value) || 0;
+                    if (costPerVal > 0 && costPerVal < 1000) costPerVal *= 1000;
+                    
+                    const rawSupport = guest * costPerVal;
+                    guestSupport = Math.min(1600000, rawSupport);
+                    
+                    detail = `(${costPerVal.toLocaleString('vi-VN')}đ × ${guest} KH = ${rawSupport.toLocaleString('vi-VN')}đ${rawSupport > 1600000 ? ' -> Giới hạn tối đa 1.600.000đ' : ''})`;
+                } else {
+                    const validGuests = Math.min(20, guest);
+                    guestSupport = validGuests * 25000;
+                    detail = `(Tặng quà 25k × ${validGuests} KH thực tế, tối đa 20 KH)`;
+                }
+            } else if (cat === 'HN Tặng quà') {
+                const validGuests = Math.min(20, guest);
+                guestSupport = validGuests * 25000;
+                detail = `(25k × ${validGuests} KH thực tế, tối đa 20 KH)`;
+            } else if (cat === 'TVNN Tiệc mặn') {
+                guestSupport = 500000;
+                detail = `(Hỗ trợ cố định 500.000đ / 1 cuộc tổ chức)`;
+            } else if (cat === 'TVNN Tặng quà') {
+                guestSupport = guest * 65000;
+                detail = `(65k × ${guest} bộ cốc 6)`;
+            } else if (cat === 'HN BOSS Tuyển dụng') {
+                const bossFormat = document.getElementById('actBossFormat').value;
+                if (bossFormat === 'Tiệc mặn') {
+                    guestSupport = guest * 500000;
+                    detail = `(BOSS Tiệc mặn: 500k × ${guest} ứng viên)`;
+                } else if (bossFormat === 'Tặng quà') {
+                    guestSupport = guest * 65000;
+                    detail = `(BOSS Tặng quà: 65k × ${guest} ứng viên)`;
+                } else {
+                    let costPerVal = parseFloat(document.getElementById('actCostPerGuest').value) || 0;
+                    if (costPerVal > 0 && costPerVal < 1000) costPerVal *= 1000;
+                    guestSupport = guest * costPerVal;
+                    detail = `(Tự điền BOSS: ${costPerVal.toLocaleString('vi-VN')}đ × ${guest} ứng viên)`;
+                }
+            }
+
+            const totalInvest = guestSupport + speakerFee + transportFee;
+            if (speakerFee > 0 || transportFee > 0) {
+                detail += ` + Thuyết trình: ${speakerFee.toLocaleString('vi-VN')}đ + Xe: ${transportFee.toLocaleString('vi-VN')}đ`;
+            }
+
+            document.getElementById('calculatedSupport').innerText = totalInvest.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('supportDetail').innerText = detail;
+        }
+
+        function saveActivity(e) {
+            e.preventDefault();
+            const id = document.getElementById('activityId').value;
+            const title = document.getElementById('actTitle').value;
+            const date = document.getElementById('actDate').value;
+            const time = document.getElementById('actTime').value;
+            const session = getSessionFromTime(time) || document.getElementById('actSession').value;
+            const category = document.getElementById('actCategory').value;
+            const priority = document.getElementById('actPriority').value;
+            const status = document.getElementById('actStatus').value;
+            const notes = document.getElementById('actNotes').value;
+
+            const groupFormat = document.getElementById('actGroupFormat').value;
+            const bossFormat = document.getElementById('actBossFormat').value;
+            const costPerGuest = document.getElementById('actCostPerGuest').value;
+            const speakerFee = document.getElementById('actSpeakerFee').value;
+            const transportFee = document.getElementById('actTransportFee').value;
+
+            const teamInvited = document.getElementById('actTeamInvited').value;
+            const tvvNames = document.getElementById('actTvvNames').value;
+            const tvvCount = document.getElementById('actTvvCount').value;
+            const guestPlan = document.getElementById('actGuestPlan').value;
+            const guestCount = document.getElementById('actGuestCount').value;
+            const closedContracts = document.getElementById('actClosedContracts').value;
+            
+            const fypRegistered = document.getElementById('actFypRegistered').value;
+            const fyp = document.getElementById('actFyp').value;
+            
+            const regBvln = document.getElementById('actRegBvln').value;
+            const actBvln = document.getElementById('actActBvln').value;
+
+            const dataObj = {
+                id: id || ('act-' + Date.now()),
+                createdAt: (id && activities.find(a => String(a.id) === String(id))?.createdAt) || new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                title, date, time, session, category, priority, status, notes,
+                groupFormat, bossFormat, costPerGuest, speakerFee, transportFee,
+                teamInvited, tvvNames, tvvCount, guestPlan, guestCount, closedContracts, 
+                fypRegistered, fyp, regBvln, actBvln
+            };
+
+            if(id) {
+                const index = activities.findIndex(a => a.id === id);
+                if(index !== -1) {
+                    activities[index] = dataObj;
+                    showToast('Đã cập nhật lịch & kết quả BOSS / HN!');
+                }
+            } else {
+                activities.push(dataObj);
+                showToast('Thêm mới lịch thành công!');
+            }
+
+            saveToStorage();
+            closeModal();
+            renderMatrix();
+            renderCalendar();
+            renderGroupTable();
+            renderTvnnTable();
+            renderBossTable();
+            updateDashboard();
+        }
+
+        function editActivity(id) {
+            const item = activities.find(a => a.id === id);
+            if(!item) return;
+
+            document.getElementById('activityId').value = item.id;
+            document.getElementById('deleteEditingActivityButton').classList.remove('hidden');
+            document.getElementById('actTitle').value = item.title;
+            document.getElementById('actDate').value = item.date;
+            document.getElementById('actTime').value = item.time || '';
+            document.getElementById('actSession').value = item.session;
+            if (item.time) syncSessionFromTime();
+            document.getElementById('actCategory').value = item.category;
+            document.getElementById('actPriority').value = item.priority;
+            document.getElementById('actStatus').value = item.status;
+            document.getElementById('actNotes').value = item.notes || '';
+
+            document.getElementById('actGroupFormat').value = item.groupFormat || 'Tiệc mặn';
+            document.getElementById('actBossFormat').value = item.bossFormat || 'Tự điền';
+            document.getElementById('actCostPerGuest').value = item.costPerGuest || '';
+            document.getElementById('actSpeakerFee').value = item.speakerFee || '';
+            document.getElementById('actTransportFee').value = item.transportFee || '';
+
+            document.getElementById('actTeamInvited').value = item.teamInvited || '';
+            document.getElementById('actTvvNames').value = item.tvvNames || '';
+            document.getElementById('actTvvCount').value = item.tvvCount || '';
+            document.getElementById('actGuestPlan').value = item.guestPlan || '';
+            document.getElementById('actGuestCount').value = item.guestCount || '';
+            document.getElementById('actClosedContracts').value = item.closedContracts || '';
+            
+            document.getElementById('actFypRegistered').value = item.fypRegistered || '';
+            document.getElementById('actFyp').value = item.fyp || '';
+            
+            document.getElementById('actRegBvln').value = item.regBvln || '';
+            document.getElementById('actActBvln').value = item.actBvln || '';
+
+            document.getElementById('modalTitle').innerText = 'Cập nhật Lịch & Kết quả';
+            toggleSpecialFields();
+            document.getElementById('activityModal').classList.remove('hidden');
+        }
+
+        function deleteEditingActivity() {
+            const id = document.getElementById('activityId').value;
+            if (!id) return;
+            const item = activities.find(activity => String(activity.id) === String(id));
+            if (!item) {
+                showToast('Không tìm thấy kế hoạch cần xóa.', 'fa-triangle-exclamation');
+                closeModal();
+                return;
+            }
+            const dateLabel = formatDateVietnam(item.date);
+            const timeLabel = item.time ? ` lúc ${item.time}` : item.session ? ` (${item.session})` : '';
+            const confirmed = confirm(`XÁC NHẬN XÓA KẾ HOẠCH\n\n${item.title || 'Hoạt động không tên'}\nNgày ${dateLabel}${timeLabel}\n\nChỉ kế hoạch này bị xóa. Thao tác không thể hoàn tác. Bạn có chắc chắn không?`);
+            if (!confirmed) return;
+            activities = activities.filter(activity => String(activity.id) !== String(id));
+            saveToStorage();
+            closeModal();
+            refreshAllViews();
+            showToast('Đã xóa kế hoạch đã chọn.', 'fa-trash-can');
+        }
+
+        function deleteActivity(id) {
+            if(confirm('Anh Trọng Nghĩa có chắc muốn xóa hoạt động này không?')) {
+                activities = activities.filter(a => a.id !== id);
+                saveToStorage();
+                renderMatrix();
+                renderCalendar();
+                renderGroupTable();
+                renderTvnnTable();
+                renderBossTable();
+                updateDashboard();
+                showToast('Đã xóa hoạt động!', 'fa-trash-can');
+            }
+        }
+
+        function exportData() {
+            const payload = buildJsonEnvelope(activities, false);
+            downloadJsonPayload(payload, `BVNT_Lich_v18_${formatDateIso(getVietnamNow())}.json`);
+            showToast('Đã xuất file JSON thành công!');
+        }
+
+        function buildJsonEnvelope(items, isBackup) {
+            const exportedAt = new Date().toISOString();
+            return {
+                format: 'bao-viet-activity-tracker',
+                formatVersion: 2,
+                exportedAt,
+                backup: Boolean(isBackup),
+                activities: items.map(item => ({
+                    ...item,
+                    createdAt: item.createdAt || item.updatedAt || exportedAt,
+                    updatedAt: item.updatedAt || exportedAt
+                }))
+            };
+        }
+
+        function downloadJsonPayload(payload, filename) {
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = url;
+            downloadAnchor.download = filename;
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
+
+        function parseJsonTimestamp(value) {
+            if (!value) return null;
+            const timestamp = Date.parse(value);
+            return Number.isFinite(timestamp) ? timestamp : null;
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    const imported = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.activities) ? parsed.activities : null;
+                    const envelopeTimestamp = Array.isArray(parsed) ? null : parseJsonTimestamp(parsed && parsed.exportedAt);
+                    if (!imported) {
+                        alert('File JSON không đúng định dạng lịch hoạt động.');
+                        return;
+                    }
+
+                    const incomingById = new Map();
+                    let invalid = 0, duplicates = 0;
+                    imported.forEach(item => {
+                        if (!item || typeof item !== 'object' || Array.isArray(item) || item.id === undefined || item.id === null || String(item.id).trim() === '') {
+                            invalid++;
+                            return;
+                        }
+                        const key = String(item.id);
+                        const prior = incomingById.get(key);
+                        if (!prior) incomingById.set(key, item);
+                        else {
+                            duplicates++;
+                            const priorTime = parseJsonTimestamp(prior.updatedAt) || envelopeTimestamp;
+                            const itemTime = parseJsonTimestamp(item.updatedAt) || envelopeTimestamp;
+                            if (!priorTime || (itemTime && itemTime >= priorTime)) incomingById.set(key, item);
+                        }
+                    });
+
+                    const localIndexById = new Map();
+                    activities.forEach((item, index) => {
+                        if (item && item.id !== undefined && item.id !== null) localIndexById.set(String(item.id), index);
+                    });
+                    const merged = activities.slice();
+                    let added = 0, updated = 0, keptNewerLocal = 0;
+                    const importTime = Date.now();
+                    for (const [key, incoming] of incomingById.entries()) {
+                        const localIndex = localIndexById.get(key);
+                        const sourceTime = parseJsonTimestamp(incoming.updatedAt) || envelopeTimestamp;
+                        const recordTime = sourceTime || importTime;
+                        const incomingRecord = {
+                            ...incoming,
+                            createdAt: incoming.createdAt || (localIndex !== undefined && merged[localIndex].createdAt) || new Date(recordTime).toISOString(),
+                            updatedAt: new Date(recordTime).toISOString()
+                        };
+                        if (localIndex === undefined) {
+                            localIndexById.set(key, merged.length);
+                            merged.push(incomingRecord);
+                            added++;
+                        } else {
+                            const existing = merged[localIndex];
+                            const localTime = parseJsonTimestamp(existing.updatedAt);
+                            if (sourceTime && localTime && localTime > sourceTime) {
+                                keptNewerLocal++;
+                                continue;
+                            }
+                            merged[localIndex] = { ...existing, ...incomingRecord, createdAt: existing.createdAt || incomingRecord.createdAt };
+                            updated++;
+                        }
+                    }
+
+                    if (added + updated + keptNewerLocal === 0 && invalid > 0) {
+                        alert(`Không có hoạt động hợp lệ để gộp. Đã bỏ qua ${invalid} dòng thiếu mã ID.`);
+                        return;
+                    }
+                    const summary = `Tệp nhập: ${imported.length} hoạt động\n- Thêm mới: ${added}\n- Cập nhật theo ID: ${updated}\n- Giữ bản trên máy này vì mới hơn: ${keptNewerLocal}\n- Bỏ qua thiếu ID: ${invalid}\n- ID trùng trong tệp: ${duplicates}`;
+                    const hasUntimestampedRecords = !envelopeTimestamp && imported.some(item => item && item.id !== undefined && !parseJsonTimestamp(item.updatedAt));
+                    const legacyWarning = hasUntimestampedRecords ? '\n\nLưu ý: file cũ không có dấu thời gian. Với ID trùng, bản trong file nhập sẽ được ưu tiên vì không thể xác định bản nào mới hơn.' : '';
+                    const confirmed = confirm(`XÁC NHẬN GỘP DỮ LIỆU JSON\n\n${summary}\n\nCác lịch chỉ có trên máy này sẽ được giữ nguyên. Một file sao lưu JSON của máy này sẽ được tải xuống trước khi gộp.${legacyWarning}\n\nBạn muốn tiếp tục không?`);
+                    if (!confirmed) return;
+
+                    const timestamp = formatDateIso(getVietnamNow());
+                    downloadJsonPayload(buildJsonEnvelope(activities, true), `BVNT_SaoLuu_TruocKhiGop_${timestamp}.json`);
+                    activities = merged;
+                    saveToStorage();
+                    refreshAllViews();
+                    showToast(`Đã gộp: thêm ${added}, cập nhật ${updated}, giữ bản mới hơn ${keptNewerLocal}.`, 'fa-code-merge');
+                } catch(err) {
+                    console.error(err);
+                    alert('Không thể đọc hoặc gộp file JSON. Dữ liệu hiện có chưa bị thay đổi.');
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if(confirm(`XÓA TOÀN BỘ ${activities.length} KẾ HOẠCH?\n\nThao tác này xóa lịch của mọi ngày, tuần, tháng và không thể khôi phục. Bạn có chắc chắn không?`)) {
+                activities = [];
+                saveToStorage();
+                renderMatrix();
+                renderCalendar();
+                renderGroupTable();
+                renderTvnnTable();
+                renderBossTable();
+                updateDashboard();
+                showToast('Đã xóa toàn bộ dữ liệu!');
+            }
+        }
+
+        function formatCurrencyVnd(value) {
+            return (Number(value) || 0).toLocaleString('vi-VN') + ' đ';
+        }
+
+        function getActivityInvestment(item) {
+            const guest = Number.parseInt(item.guestCount, 10) || 0;
+            let speakerFee = Number.parseFloat(item.speakerFee) || 0;
+            let transportFee = Number.parseFloat(item.transportFee) || 0;
+            if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+            if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+            let guestSupport = 0;
+            if (item.category === 'HN Nhóm') {
+                if ((item.groupFormat || 'Tiệc mặn') === 'Tiệc mặn') {
+                    let cost = Number.parseFloat(item.costPerGuest) || 0;
+                    if (cost > 0 && cost < 1000) cost *= 1000;
+                    guestSupport = Math.min(1600000, guest * cost);
+                } else guestSupport = Math.min(20, guest) * 25000;
+            } else if (item.category === 'HN Tặng quà') guestSupport = Math.min(20, guest) * 25000;
+            else if (item.category === 'TVNN Tiệc mặn') guestSupport = 500000;
+            else if (item.category === 'TVNN Tặng quà') guestSupport = guest * 65000;
+            else if (item.category === 'HN BOSS Tuyển dụng') {
+                const format = item.bossFormat || 'Tự điền';
+                if (format === 'Tiệc mặn') guestSupport = guest * 500000;
+                else if (format === 'Tặng quà') guestSupport = guest * 65000;
+                else {
+                    let cost = Number.parseFloat(item.costPerGuest) || 0;
+                    if (cost > 0 && cost < 1000) cost *= 1000;
+                    guestSupport = guest * cost;
+                }
+            }
+            return { guestSupport, speakerFee, transportFee, total: guestSupport + speakerFee + transportFee };
+        }
+
+        function getReportRecords() {
+            const start = document.getElementById('reportStartDate').value;
+            const end = document.getElementById('reportEndDate').value;
+            if (!parseIsoLocal(start) || !parseIsoLocal(end) || start > end) {
+                return { error: 'Vui lòng chọn khoảng ngày hợp lệ; ngày bắt đầu không được sau ngày kết thúc.' };
+            }
+            const records = activities.filter(item => item.date >= start && item.date <= end)
+                .sort((a, b) => `${a.date}T${a.time || '00:00'}`.localeCompare(`${b.date}T${b.time || '00:00'}`));
+            return { start, end, records };
+        }
+
+        function summarizeReport(records) {
+            const active = records.filter(item => item.status !== 'CANCELLED');
+            const cancelled = records.filter(item => item.status === 'CANCELLED').length;
+            const boss = active.filter(item => item.category === 'HN BOSS Tuyển dụng');
+            const nonBoss = active.filter(item => item.category !== 'HN BOSS Tuyển dụng');
+            return {
+                total: records.length,
+                completed: records.filter(item => item.status === 'COMPLETED').length,
+                upcoming: records.filter(item => item.status === 'UPCOMING').length,
+                cancelled,
+                guests: nonBoss.reduce((sum, item) => sum + (Number(item.guestCount) || 0), 0),
+                candidates: boss.reduce((sum, item) => sum + (Number(item.guestCount) || 0), 0),
+                contracts: active.reduce((sum, item) => sum + (Number(item.closedContracts) || 0), 0),
+                fyp: active.reduce((sum, item) => sum + (Number(item.fyp) || 0), 0),
+                investment: active.reduce((sum, item) => sum + getActivityInvestment(item).total, 0)
+            };
+        }
+
+        function openReportModal() {
+            const now = getVietnamNow();
+            const today = formatDateIso(now);
+            document.getElementById('reportStartDate').value = `${today.slice(0, 7)}-01`;
+            document.getElementById('reportEndDate').value = today;
+            updateReportPreview();
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        function updateReportPreview() {
+            const preview = document.getElementById('reportPreview');
+            const report = getReportRecords();
+            if (report.error) {
+                preview.innerText = report.error;
+                return;
+            }
+            const summary = summarizeReport(report.records);
+            preview.innerHTML = `Kỳ ${formatDateVietnam(report.start)} – ${formatDateVietnam(report.end)}: <strong>${summary.total} lịch</strong>; ${summary.completed} hoàn thành; ${summary.cancelled} đã hủy; ${summary.guests} khách và ${summary.candidates} ứng viên dự. Chi phí đầu tư ước tính: ${formatCurrencyVnd(summary.investment)}.`;
+            if (report.records.length > 132) preview.innerHTML += '<br><span class="text-amber-700">Lưu ý: PPTX giới hạn 12 trang, nên một phần lịch chi tiết có thể chỉ có trong Excel.</span>';
+        }
+
+        function exportReportExcel() {
+            if (!window.XLSX) { alert('Không tải được thư viện Excel. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
+            const report = getReportRecords();
+            if (report.error) { alert(report.error); return; }
+            const { records, start, end } = report;
+            const summary = summarizeReport(records);
+            const generated = new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date());
+            const summaryRows = [
+                ['BÁO CÁO THEO DÕI LỊCH HOẠT ĐỘNG – BẢO VIỆT NHÂN THỌ'],
+                ['Kỳ báo cáo', `${formatDateVietnam(start)} – ${formatDateVietnam(end)}`],
+                ['Ngày giờ xuất (Việt Nam)', generated],
+                [], ['Chỉ số', 'Giá trị'],
+                ['Tổng số lịch', summary.total], ['Hoàn thành', summary.completed], ['Sắp diễn ra', summary.upcoming], ['Đã hủy', summary.cancelled],
+                ['Khách tham dự (không gồm BOSS)', summary.guests], ['Ứng viên BOSS tham dự', summary.candidates], ['Hợp đồng chốt ngay', summary.contracts],
+                ['FYP ký thực tế T+5 (triệu đồng)', Number(summary.fyp.toFixed(1))], ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
+            ];
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+            summarySheet['!cols'] = [{ wch: 34 }, { wch: 30 }];
+            const headers = ['Ngày', 'Giờ', 'Buổi', 'Tên hoạt động', 'Phân loại', 'Cấp độ', 'Trạng thái', 'Hình thức', 'Địa bàn / Ghi chú', 'TVV / Nhóm phụ trách', 'Danh sách TVV', 'Số TVV', 'Khách/UV kế hoạch', 'Khách/UV thực tế', 'Hợp đồng chốt ngay', 'FYP đăng ký (triệu đồng)', 'FYP ký T+5 (triệu đồng)', 'BVLN đăng ký', 'BVLN học thực tế', 'Định mức hỗ trợ (VNĐ/người)', 'Chi phí thuyết trình (VNĐ)', 'Chi phí xe (VNĐ)', 'Tổng đầu tư (VNĐ)'];
+            const detailRows = records.map(item => {
+                const cost = getActivityInvestment(item);
+                let perGuest = Number.parseFloat(item.costPerGuest) || 0;
+                if (perGuest > 0 && perGuest < 1000) perGuest *= 1000;
+                return [item.date || '', item.time || '', item.session || '', item.title || '', item.category || '', item.priority || '', item.status || '', item.category === 'HN Nhóm' ? item.groupFormat || '' : item.category === 'HN BOSS Tuyển dụng' ? item.bossFormat || '' : '', item.notes || '', item.teamInvited || '', item.tvvNames || '', Number(item.tvvCount) || 0, Number(item.guestPlan) || 0, Number(item.guestCount) || 0, Number(item.closedContracts) || 0, Number(item.fypRegistered) || 0, Number(item.fyp) || 0, Number(item.regBvln) || 0, Number(item.actBvln) || 0, perGuest, cost.speakerFee, cost.transportFee, cost.total];
+            });
+            const detailSheet = XLSX.utils.aoa_to_sheet([headers, ...detailRows]);
+            detailSheet['!cols'] = [12, 9, 10, 34, 22, 13, 14, 18, 30, 25, 28, 10, 16, 16, 16, 20, 20, 14, 16, 24, 22, 18, 20].map(wch => ({ wch }));
+            if (records.length) detailSheet['!autofilter'] = { ref: `A1:W${records.length + 1}` };
+            detailSheet['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft', state: 'frozen' };
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, summarySheet, 'Tổng hợp');
+            XLSX.utils.book_append_sheet(workbook, detailSheet, 'Chi tiết hoạt động');
+            XLSX.writeFile(workbook, `BaoViet_BaoCao_${start}_${end}.xlsx`);
+            showToast(`Đã xuất Excel gồm ${records.length} hoạt động.`);
+        }
+
+        async function exportReportPoster() {
+            if (!window.html2canvas) { alert('Không tải được thư viện tạo poster. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
+            const report = getReportRecords();
+            if (report.error) { alert(report.error); return; }
+            const { records, start, end } = report;
+            const summary = summarizeReport(records);
+            const poster = document.createElement('section');
+            poster.style.cssText = 'position:fixed;left:-20000px;top:0;width:1200px;padding:56px;background:#ffffff;color:#12304a;font-family:Arial,sans-serif;box-sizing:border-box;';
+            const cards = [
+                ['TỔNG LỊCH', summary.total, '#004b8e'], ['HOÀN THÀNH', summary.completed, '#0b7a4b'], ['KHÁCH THAM DỰ', summary.guests, '#b77900'],
+                ['ỨNG VIÊN BOSS', summary.candidates, '#6941a5'], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`, '#0b7a4b'], ['CHI PHÍ ĐẦU TƯ', formatCurrencyVnd(summary.investment), '#005BAC']
+            ];
+            const cardHtml = cards.map(([label, value, color]) => `<div style="background:#f4f8fc;border:1px solid #dce7f1;border-left:6px solid ${color};border-radius:14px;padding:18px"><div style="font-size:13px;font-weight:700;color:#526477;letter-spacing:.5px">${label}</div><div style="font-size:28px;font-weight:800;color:${color};margin-top:8px">${escapeHtml(String(value))}</div></div>`).join('');
+            const detailHtml = records.slice(0, 12).map(item => `<tr><td>${formatDateVietnam(item.date)}${item.time ? ' · ' + escapeHtml(item.time) : ''}</td><td>${escapeHtml(item.title || '')}</td><td>${escapeHtml(item.category || '')}</td><td>${escapeHtml(item.status === 'COMPLETED' ? 'Hoàn thành' : item.status === 'CANCELLED' ? 'Đã hủy' : 'Sắp diễn ra')}</td></tr>`).join('');
+            poster.innerHTML = `<div style="background:#003B73;color:white;border-radius:18px;padding:30px 36px"><div style="font-size:16px;font-weight:700;color:#FDB813;letter-spacing:2px">BẢO VIỆT NHÂN THỌ</div><h1 style="font-size:34px;margin:12px 0 6px">BÁO CÁO LỊCH HOẠT ĐỘNG</h1><div style="font-size:17px;color:#e3edf6">Kỳ ${formatDateVietnam(start)} – ${formatDateVietnam(end)} · GMT+7</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0">${cardHtml}</div><div style="padding:14px 18px;background:#fff8e8;border:1px solid #f4dea7;border-radius:12px;font-size:15px;font-weight:700;color:#704f00">${summary.cancelled} hoạt động đã hủy · ${summary.contracts} hợp đồng chốt ngay</div><h2 style="font-size:21px;color:#003B73;margin:26px 0 10px">HOẠT ĐỘNG NỔI BẬT</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e6f0fa;text-align:left"><th style="padding:12px;border-bottom:2px solid #aac5de">Ngày / Giờ</th><th style="padding:12px;border-bottom:2px solid #aac5de">Hoạt động</th><th style="padding:12px;border-bottom:2px solid #aac5de">Phân loại</th><th style="padding:12px;border-bottom:2px solid #aac5de">Trạng thái</th></tr></thead><tbody>${detailHtml || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b">Không có hoạt động trong kỳ</td></tr>'}</tbody></table>${records.length > 12 ? `<p style="font-size:12px;color:#64748b;margin-top:10px">Poster hiển thị 12/${records.length} lịch; file Excel chứa đầy đủ chi tiết.</p>` : ''}<div style="font-size:11px;color:#64748b;margin-top:24px;border-top:1px solid #dce7f1;padding-top:12px">Báo cáo được tạo từ dữ liệu lịch trong ứng dụng · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date())}</div>`;
+            document.body.appendChild(poster);
+            try {
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                const canvas = await html2canvas(poster, { scale: 2, backgroundColor: '#ffffff', width: 1200, windowWidth: 1280, useCORS: true });
+                const link = document.createElement('a');
+                link.download = `BaoViet_Poster_${start}_${end}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Đã xuất poster PNG.');
+            } catch (error) {
+                console.error(error);
+                alert('Không tạo được poster. Hãy thử lại hoặc dùng chức năng In của trình duyệt.');
+            } finally { poster.remove(); }
+        }
+
+        async function exportReportPptx() {
+            if (!window.PptxGenJS) { alert('Không tải được thư viện PowerPoint. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
+            const report = getReportRecords();
+            if (report.error) { alert(report.error); return; }
+            const { records, start, end } = report;
+            const summary = summarizeReport(records);
+            const pptx = new window.PptxGenJS();
+            pptx.layout = 'LAYOUT_WIDE';
+            pptx.author = 'Bảo Việt Nhân Thọ';
+            pptx.subject = `Báo cáo lịch hoạt động ${start} – ${end}`;
+            pptx.title = 'Báo cáo lịch hoạt động';
+            pptx.company = 'Bảo Việt Nhân Thọ';
+            pptx.lang = 'vi-VN';
+            pptx.theme = { headFontFace: 'Aptos Display', bodyFontFace: 'Aptos', lang: 'vi-VN' };
+            const blue = '003B73', pale = 'E6F0FA', gold = 'FDB813', ink = '18324B';
+            const cover = pptx.addSlide();
+            cover.background = { color: 'FFFFFF' };
+            cover.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.333, h: 1.55, line: { color: blue, transparency: 100 }, fill: { color: blue } });
+            cover.addText('BẢO VIỆT NHÂN THỌ', { x: 0.65, y: 0.28, w: 7, h: 0.28, fontFace: 'Aptos', fontSize: 13, bold: true, color: gold, charSpacing: 2 });
+            cover.addText('BÁO CÁO LỊCH HOẠT ĐỘNG', { x: 0.65, y: 0.72, w: 11.6, h: 0.52, fontFace: 'Aptos Display', fontSize: 26, bold: true, color: 'FFFFFF' });
+            cover.addText(`Kỳ báo cáo: ${formatDateVietnam(start)} – ${formatDateVietnam(end)}`, { x: 0.68, y: 1.82, w: 8, h: 0.34, fontSize: 16, bold: true, color: blue });
+            const metricCards = [
+                ['Tổng lịch', String(summary.total)], ['Hoàn thành', String(summary.completed)], ['Đã hủy', String(summary.cancelled)],
+                ['Khách dự', String(summary.guests)], ['Ứng viên BOSS', String(summary.candidates)], ['Hợp đồng', String(summary.contracts)],
+                ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`], ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
+            ];
+            metricCards.forEach((metric, index) => {
+                const col = index % 4, row = Math.floor(index / 4), x = 0.65 + col * 3.12, y = 2.5 + row * 1.38;
+                cover.addShape(pptx.ShapeType.roundRect, { x, y, w: 2.82, h: 1.12, rectRadius: 0.08, line: { color: 'D8E4EF', pt: 1 }, fill: { color: pale } });
+                cover.addText(metric[0].toUpperCase(), { x: x + 0.16, y: y + 0.17, w: 2.5, h: 0.22, fontSize: 9, bold: true, color: '526477', charSpacing: 0.6 });
+                cover.addText(metric[1], { x: x + 0.16, y: y + 0.48, w: 2.5, h: 0.42, fontSize: 20, bold: true, color: blue, fit: 'shrink' });
+            });
+            cover.addText('Số liệu lấy từ các hoạt động trong khoảng ngày đã chọn; hoạt động hủy được thống kê riêng.', { x: 0.68, y: 5.62, w: 11.6, h: 0.34, fontSize: 10, color: '64748B' });
+            cover.addText(new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date()) + ' · GMT+7', { x: 9.25, y: 6.85, w: 3.35, h: 0.22, fontSize: 8, color: '64748B', align: 'right' });
+
+            const maxRowsPerSlide = 12, maxDetailSlides = 11;
+            const maxItems = maxRowsPerSlide * maxDetailSlides;
+            const exported = records.slice(0, maxItems);
+            let lastDetailSlide = null;
+            for (let offset = 0, page = 0; offset < exported.length; offset += maxRowsPerSlide, page++) {
+                const slide = pptx.addSlide();
+                lastDetailSlide = slide;
+                slide.background = { color: 'FFFFFF' };
+                slide.addText('CHI TIẾT KẾ HOẠCH HOẠT ĐỘNG', { x: 0.55, y: 0.32, w: 9, h: 0.4, fontSize: 18, bold: true, color: blue });
+                slide.addText(`Kỳ ${formatDateVietnam(start)} – ${formatDateVietnam(end)} · Trang ${page + 2}`, { x: 0.56, y: 0.82, w: 8, h: 0.25, fontSize: 9, color: '64748B' });
+                const rows = [[
+                    { text: 'Ngày', options: { bold: true, color: 'FFFFFF', fill: blue } },
+                    { text: 'Giờ', options: { bold: true, color: 'FFFFFF', fill: blue } },
+                    { text: 'Hoạt động', options: { bold: true, color: 'FFFFFF', fill: blue } },
+                    { text: 'Phân loại', options: { bold: true, color: 'FFFFFF', fill: blue } },
+                    { text: 'Trạng thái', options: { bold: true, color: 'FFFFFF', fill: blue } },
+                    { text: 'Khách / UV', options: { bold: true, color: 'FFFFFF', fill: blue } }
+                ]];
+                exported.slice(offset, offset + maxRowsPerSlide).forEach(item => rows.push([
+                    formatDateVietnam(item.date), item.time || item.session || '', item.title || '', item.category || '',
+                    item.status === 'COMPLETED' ? 'Hoàn thành' : item.status === 'CANCELLED' ? 'Đã hủy' : 'Sắp diễn ra',
+                    String(Number(item.guestCount) || 0)
+                ]));
+                slide.addTable(rows, {
+                    x: 0.55, y: 1.35, w: 12.2,
+                    colW: [1.25, 0.8, 4.0, 2.25, 1.65, 1.4],
+                    rowH: 0.38, fontFace: 'Aptos', fontSize: 9, color: ink,
+                    border: { color: 'CBD5E1', pt: 0.6 },
+                    fill: 'FFFFFF', margin: 0.08, valign: 'mid',
+                    autoFit: false
+                });
+                slide.addText(`Báo cáo tự động · Bảo Việt Nhân Thọ`, { x: 0.56, y: 7.08, w: 7, h: 0.18, fontSize: 8, color: '64748B' });
+            }
+            const omitted = Math.max(0, records.length - maxItems);
+            if (omitted > 0) {
+                lastDetailSlide.addText(`Còn ${omitted} hoạt động chi tiết chưa được đưa vào PPTX vì giới hạn 12 trang. Dùng file Excel để xem đầy đủ.`, { x: 0.56, y: 6.72, w: 12, h: 0.28, fontSize: 9, bold: true, color: 'B45309' });
+            }
+            try {
+                await pptx.writeFile({ fileName: `BaoViet_BaoCao_${start}_${end}.pptx` });
+                showToast(`Đã xuất PowerPoint (${1 + Math.ceil(exported.length / maxRowsPerSlide)} trang).${omitted ? ` ${omitted} lịch chi tiết chỉ có trong Excel.` : ''}`);
+            } catch (error) {
+                console.error(error);
+                alert('Không tạo được tệp PowerPoint. Hãy kiểm tra kết nối Internet và thử lại.');
+            }
+        }
+
+        function showToast(msg, icon = 'fa-circle-check') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            document.getElementById('toastIcon').className = `fa-solid ${icon} text-bvyellow-400 text-lg`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function escapeHtml(str) {
+            return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
+        }
+    </script>
+</body>
+</html>
