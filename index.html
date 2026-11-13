@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v22.0)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v27.0)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -104,7 +104,7 @@
     <!-- MAIN APP CONTAINER -->
     <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- MASTER NAVIGATION TABS (4 TABS) -->
+        <!-- MASTER NAVIGATION TABS -->
         <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap gap-2 items-center justify-between">
             <div class="flex bg-gray-100 p-1.5 rounded-xl w-full lg:w-auto overflow-x-auto custom-scrollbar gap-1">
                 <button id="mainTabCalendar" onclick="switchMainTab('calendar')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm bg-bvblue-600 text-white flex items-center">
@@ -112,6 +112,9 @@
                 </button>
                 <button id="mainTabGroup" onclick="switchMainTab('group')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-users mr-2 text-indigo-500"></i> HN cấp Nhóm
+                </button>
+                <button id="mainTabRoom" onclick="switchMainTab('room')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                    <i class="fa-solid fa-building mr-2 text-cyan-600"></i> HN PHÒNG
                 </button>
                 <button id="mainTabTvnn" onclick="switchMainTab('tvnn')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-handshake mr-2 text-amber-500"></i> HN TVNN
@@ -218,6 +221,7 @@
                         <option value="Đào tạo">🎓 Đào tạo đại lý / Sản phẩm</option>
                         <option value="Tuyển dụng">🎯 Phỏng vấn / Calling / JFW</option>
                         <option value="HN Nhóm">👥 HN cấp Nhóm</option>
+                        <option value="HN Phòng">🏢 HN PHÒNG</option>
                         <option value="TVNN Tiệc mặn">🍲 HN TVNN Tiệc mặn</option>
                         <option value="TVNN Tặng quà">🎁 HN TVNN Tặng quà</option>
                         <option value="HN BOSS Tuyển dụng">👔 HN BOSS</option>
@@ -315,6 +319,7 @@
                     <p class="text-xs text-gray-500 mt-0.5">Quản lý các hội nghị cấp Nhóm với tùy chọn Tiệc mặn / Tặng quà, chi phí Thuyết trình, Hỗ trợ xe và Doanh thu ký T+5.</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button onclick="resetTrackerColumnFilters('group')" class="bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition" title="Xóa bộ lọc HN cấp Nhóm"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Xóa bộ lọc</button>
                     <button onclick="openReportModal('group')" class="bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
                     <button onclick="openModalForCategory('HN Nhóm')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition"><i class="fa-solid fa-plus mr-1.5"></i> Thêm HN cấp Nhóm</button>
                 </div>
@@ -340,21 +345,59 @@
             </div>
 
             <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full border-collapse text-left text-xs min-w-[1100px]">
+                <table class="w-full border-collapse text-left text-xs min-w-[1200px]">
                     <thead>
                         <tr class="bg-indigo-700 text-white uppercase font-extrabold">
-                            <th class="p-3 border border-indigo-600">Ngày / Buổi</th>
-                            <th class="p-3 border border-indigo-600">Tên Hội Nghị / Địa bàn</th>
-                            <th class="p-3 border border-indigo-600">Hình Thức</th>
-                            <th class="p-3 border border-indigo-600 text-center">Khách Dự</th>
-                            <th class="p-3 border border-indigo-600 text-right">Chi Phí KH</th>
-                            <th class="p-3 border border-indigo-600 text-right">Thuyết Trình + Xe</th>
-                            <th class="p-3 border border-indigo-600 text-right">Tổng Đầu Tư</th>
-                            <th class="p-3 border border-indigo-600 text-right">Doanh Thu T+5</th>
+                            <th class="p-3 border border-indigo-600"><div class="flex items-center justify-between gap-1"><span>Ngày / Buổi</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="date" onclick="openTrackerColumnFilter(event,'group','date','Ngày / Buổi')" title="Lọc ngày/buổi" aria-label="Lọc ngày/buổi"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600"><div class="flex items-center justify-between gap-1"><span>Tên Hội Nghị / Địa bàn</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="title" onclick="openTrackerColumnFilter(event,'group','title','Tên Hội Nghị / Địa bàn')" title="Lọc tên/địa bàn" aria-label="Lọc tên/địa bàn"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600"><div class="flex items-center justify-between gap-1"><span>Hình Thức</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="format" onclick="openTrackerColumnFilter(event,'group','format','Hình Thức')" title="Lọc hình thức" aria-label="Lọc hình thức"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-center"><div class="flex items-center justify-center gap-1"><span>Khách Dự</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="guests" onclick="openTrackerColumnFilter(event,'group','guests','Khách Dự')" title="Lọc khách dự" aria-label="Lọc khách dự"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-right"><div class="flex items-center justify-end gap-1"><span>Chi Phí KH</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="guestCost" onclick="openTrackerColumnFilter(event,'group','guestCost','Chi Phí KH')" title="Lọc chi phí khách" aria-label="Lọc chi phí khách"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-right"><div class="flex items-center justify-end gap-1"><span>Thuyết Trình + Xe</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="speakerTransport" onclick="openTrackerColumnFilter(event,'group','speakerTransport','Thuyết Trình + Xe')" title="Lọc chi phí thuyết trình và xe" aria-label="Lọc chi phí thuyết trình và xe"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-right"><div class="flex items-center justify-end gap-1"><span>Tổng Đầu Tư</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="totalInvest" onclick="openTrackerColumnFilter(event,'group','totalInvest','Tổng Đầu Tư')" title="Lọc tổng đầu tư" aria-label="Lọc tổng đầu tư"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-right"><div class="flex items-center justify-end gap-1"><span>Doanh Thu T+5</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="fyp" onclick="openTrackerColumnFilter(event,'group','fyp','Doanh Thu T+5')" title="Lọc doanh thu" aria-label="Lọc doanh thu"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-indigo-600 text-center"><div class="flex items-center justify-center gap-1"><span>Trạng thái</span><button type="button" class="tracker-filter-trigger text-indigo-100 hover:text-white" data-filter-scope="group" data-filter-key="status" onclick="openTrackerColumnFilter(event,'group','status','Trạng thái')" title="Lọc trạng thái" aria-label="Lọc trạng thái"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-indigo-600 text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="groupTableBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 3: DEDICATED TAB - HN PHÒNG -->
+        <div id="sectionRoom" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+                <div>
+                    <h2 class="text-lg font-extrabold text-cyan-900 flex items-center"><i class="fa-solid fa-building mr-2 text-cyan-600"></i> Theo dõi HN PHÒNG</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Theo dõi riêng kế hoạch, khách mời và kết quả các hội nghị triển khai cấp Phòng.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetTrackerColumnFilters('room')" class="bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-300 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition" title="Xóa bộ lọc HN PHÒNG"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Xóa bộ lọc</button>
+                    <button onclick="openReportModal('room')" class="bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-300 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
+                    <button onclick="openModalForCategory('HN Phòng')" class="bg-cyan-700 hover:bg-cyan-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition"><i class="fa-solid fa-plus mr-1.5"></i>Thêm HN PHÒNG</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-200"><p class="text-xs font-bold text-cyan-800 uppercase">Tổng số HN PHÒNG</p><h3 id="roomTotalCount" class="text-2xl font-extrabold text-cyan-900 mt-1">0</h3></div>
+                <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-200"><p class="text-xs font-bold text-cyan-800 uppercase">Tổng khách thực tế</p><h3 id="roomTotalGuests" class="text-2xl font-extrabold text-cyan-900 mt-1">0 khách</h3></div>
+                <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-200"><p class="text-xs font-bold text-cyan-800 uppercase">Hợp đồng chốt</p><h3 id="roomTotalContracts" class="text-2xl font-extrabold text-indigo-800 mt-1">0 HĐ</h3></div>
+                <div class="bg-cyan-50 p-4 rounded-xl border border-cyan-200"><p class="text-xs font-bold text-cyan-800 uppercase">Doanh thu ký T+5</p><h3 id="roomTotalFyp" class="text-2xl font-extrabold text-emerald-700 mt-1">0 trđ</h3></div>
+            </div>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse text-left text-xs min-w-[1100px]">
+                    <thead><tr class="bg-cyan-800 text-white uppercase font-extrabold">
+                        <th class="p-3 border border-cyan-700"><div class="flex items-center justify-between gap-1"><span>Ngày / Buổi</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="date" onclick="openTrackerColumnFilter(event,'room','date','Ngày / Buổi')" title="Lọc ngày/buổi" aria-label="Lọc ngày/buổi"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700"><div class="flex items-center justify-between gap-1"><span>Tên HN / Địa bàn</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="title" onclick="openTrackerColumnFilter(event,'room','title','Tên HN / Địa bàn')" title="Lọc tên/địa bàn" aria-label="Lọc tên/địa bàn"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700"><div class="flex items-center justify-between gap-1"><span>Ban / Nhóm mời</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="team" onclick="openTrackerColumnFilter(event,'room','team','Ban / Nhóm mời')" title="Lọc ban/nhóm" aria-label="Lọc ban/nhóm"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700"><div class="flex items-center justify-between gap-1"><span>Danh sách TVV</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="tvv" onclick="openTrackerColumnFilter(event,'room','tvv','Danh sách TVV')" title="Lọc tên TVV" aria-label="Lọc tên TVV"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700 text-center"><div class="flex items-center justify-center gap-1"><span>TVV dự</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="tvvCount" onclick="openTrackerColumnFilter(event,'room','tvvCount','TVV dự')" title="Lọc số TVV" aria-label="Lọc số TVV"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700 text-center"><div class="flex items-center justify-center gap-1"><span>Khách (KH/TH)</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="guests" onclick="openTrackerColumnFilter(event,'room','guests','Khách (KH/TH)')" title="Lọc số khách" aria-label="Lọc số khách"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700 text-center"><div class="flex items-center justify-center gap-1"><span>HĐ chốt</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="contracts" onclick="openTrackerColumnFilter(event,'room','contracts','HĐ chốt')" title="Lọc hợp đồng" aria-label="Lọc hợp đồng"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700 text-right"><div class="flex items-center justify-end gap-1"><span>FYP T+5</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="fyp" onclick="openTrackerColumnFilter(event,'room','fyp','FYP T+5')" title="Lọc FYP" aria-label="Lọc FYP"><i class="fa-solid fa-filter"></i></button></div></th>
+                        <th class="p-3 border border-cyan-700 text-center"><div class="flex items-center justify-center gap-1"><span>Trạng thái</span><button type="button" class="tracker-filter-trigger text-cyan-100 hover:text-white" data-filter-scope="room" data-filter-key="status" onclick="openTrackerColumnFilter(event,'room','status','Trạng thái')" title="Lọc trạng thái" aria-label="Lọc trạng thái"><i class="fa-solid fa-filter"></i></button></div></th><th class="p-3 border border-cyan-700 text-center">Thao tác</th>
+                    </tr></thead>
+                    <tbody id="roomTableBody" class="divide-y divide-gray-100"></tbody>
                 </table>
             </div>
         </div>
@@ -368,12 +411,8 @@
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5">Quản lý các chương trình Hội nghị TVNN gồm hình thức Tiệc Mặn (500k cố định/cuộc) và Tặng Quà (65k/bộ).</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <select id="tvnnSubFilter" onchange="renderTvnnTable()" class="bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold rounded-xl px-3 py-2 outline-none">
-                        <option value="ALL">Tất cả hình thức TVNN</option>
-                        <option value="TVNN Tiệc mặn">🍲 TVNN Tiệc mặn (500k/cuộc)</option>
-                        <option value="TVNN Tặng quà">🎁 TVNN Tặng quà (65k)</option>
-                    </select>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="resetTvnnFilters()" class="bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition" title="Xóa tất cả bộ lọc trong bảng TVNN"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Xóa bộ lọc</button>
                     <button onclick="openReportModal('tvnn')" class="bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
                     <button onclick="openModalForCategory('TVNN Tiệc mặn')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition">
                         <i class="fa-solid fa-plus mr-1"></i> Thêm HN TVNN
@@ -397,17 +436,18 @@
             </div>
 
             <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full border-collapse text-left text-xs min-w-[1050px]">
+                <table class="w-full border-collapse text-left text-xs min-w-[1200px]">
                     <thead>
                         <tr class="bg-amber-600 text-white uppercase font-extrabold">
-                            <th class="p-3 border border-amber-500">Ngày / Buổi</th>
-                            <th class="p-3 border border-amber-500">Tên Hội Nghị / Địa bàn</th>
-                            <th class="p-3 border border-amber-500">Hình Thức</th>
-                            <th class="p-3 border border-amber-500">TVV / Nhóm Mời</th>
-                            <th class="p-3 border border-amber-500 text-center">TVV Dự</th>
-                            <th class="p-3 border border-amber-500 text-center">Khách (KH/TH)</th>
-                            <th class="p-3 border border-amber-500 text-center">HĐ Chốt</th>
-                            <th class="p-3 border border-amber-500 text-right">Doanh Thu T+5</th>
+                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Ngày / Buổi</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="date" onclick="openTvnnColumnFilter(event,'date','Ngày / Buổi')" title="Lọc ngày/buổi" aria-label="Lọc ngày/buổi"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Tên Hội Nghị / Địa bàn</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="title" onclick="openTvnnColumnFilter(event,'title','Tên Hội Nghị / Địa bàn')" title="Lọc tên hội nghị hoặc địa bàn" aria-label="Lọc tên hội nghị hoặc địa bàn"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Hình Thức</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="format" onclick="openTvnnColumnFilter(event,'format','Hình Thức')" title="Lọc hình thức" aria-label="Lọc hình thức"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>TVV / Nhóm Mời</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="team" onclick="openTvnnColumnFilter(event,'team','TVV / Nhóm Mời')" title="Lọc tên TVV hoặc nhóm mời" aria-label="Lọc tên TVV hoặc nhóm mời"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>TVV Dự</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="tvvCount" onclick="openTvnnColumnFilter(event,'tvvCount','TVV Dự')" title="Lọc số TVV dự" aria-label="Lọc số TVV dự"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>Khách (KH/TH)</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="guests" onclick="openTvnnColumnFilter(event,'guests','Khách (KH/TH)')" title="Lọc số khách" aria-label="Lọc số khách"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>HĐ Chốt</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="contracts" onclick="openTvnnColumnFilter(event,'contracts','HĐ Chốt')" title="Lọc số hợp đồng" aria-label="Lọc số hợp đồng"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500 text-right"><div class="flex items-center justify-end gap-1"><span>Doanh Thu T+5</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="fyp" onclick="openTvnnColumnFilter(event,'fyp','Doanh Thu T+5')" title="Lọc doanh thu T+5" aria-label="Lọc doanh thu T+5"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>Trạng thái</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="status" onclick="openTvnnColumnFilter(event,'status','Trạng thái')" title="Lọc trạng thái" aria-label="Lọc trạng thái"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500 text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -426,6 +466,7 @@
                     <p class="text-xs text-gray-500 mt-0.5">Quản lý các chương trình BOSS Tuyển dụng với mức chi phí tùy chọn tự điền, theo dõi Ứng viên đăng ký và tham dự học BVLN.</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button onclick="resetTrackerColumnFilters('boss')" class="bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition" title="Xóa bộ lọc HN BOSS"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Xóa bộ lọc</button>
                     <button onclick="openReportModal('boss')" class="bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
                     <button onclick="openModalForCategory('HN BOSS Tuyển dụng')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition"><i class="fa-solid fa-plus mr-1.5"></i> Thêm HN BOSS</button>
                 </div>
@@ -451,18 +492,19 @@
             </div>
 
             <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full border-collapse text-left text-xs min-w-[1050px]">
+                <table class="w-full border-collapse text-left text-xs min-w-[1200px]">
                     <thead>
                         <tr class="bg-purple-700 text-white uppercase font-extrabold">
-                            <th class="p-3 border border-purple-600">Ngày / Buổi</th>
-                            <th class="p-3 border border-purple-600">Tên Chương Trình / Địa bàn</th>
-                            <th class="p-3 border border-purple-600">Hình Thức Tổ Chức</th>
-                            <th class="p-3 border border-purple-600">TVV / Nhóm Phụ Trách</th>
-                            <th class="p-3 border border-purple-600 text-center">TVV Dự</th>
-                            <th class="p-3 border border-purple-600 text-center">Ứng Viên (KH/TH)</th>
-                            <th class="p-3 border border-purple-600 text-center">Đăng ký học BVLN</th>
-                            <th class="p-3 border border-purple-600 text-center">Học thực tế BVLN</th>
-                            <th class="p-3 border border-purple-600 text-right">Chi Phí Đầu Tư</th>
+                            <th class="p-3 border border-purple-600"><div class="flex items-center justify-between gap-1"><span>Ngày / Buổi</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="date" onclick="openTrackerColumnFilter(event,'boss','date','Ngày / Buổi')" title="Lọc ngày/buổi" aria-label="Lọc ngày/buổi"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600"><div class="flex items-center justify-between gap-1"><span>Tên Chương Trình / Địa bàn</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="title" onclick="openTrackerColumnFilter(event,'boss','title','Tên Chương Trình / Địa bàn')" title="Lọc tên/địa bàn" aria-label="Lọc tên/địa bàn"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600"><div class="flex items-center justify-between gap-1"><span>Hình Thức Tổ Chức</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="format" onclick="openTrackerColumnFilter(event,'boss','format','Hình Thức Tổ Chức')" title="Lọc hình thức" aria-label="Lọc hình thức"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600"><div class="flex items-center justify-between gap-1"><span>TVV / Nhóm Phụ Trách</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="team" onclick="openTrackerColumnFilter(event,'boss','team','TVV / Nhóm Phụ Trách')" title="Lọc TVV/nhóm" aria-label="Lọc TVV/nhóm"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-center"><div class="flex items-center justify-center gap-1"><span>TVV Dự</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="tvvCount" onclick="openTrackerColumnFilter(event,'boss','tvvCount','TVV Dự')" title="Lọc số TVV" aria-label="Lọc số TVV"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-center"><div class="flex items-center justify-center gap-1"><span>Ứng Viên (KH/TH)</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="applicants" onclick="openTrackerColumnFilter(event,'boss','applicants','Ứng Viên (KH/TH)')" title="Lọc ứng viên" aria-label="Lọc ứng viên"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-center"><div class="flex items-center justify-center gap-1"><span>Đăng ký học BVLN</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="regBvln" onclick="openTrackerColumnFilter(event,'boss','regBvln','Đăng ký học BVLN')" title="Lọc đăng ký học BVLN" aria-label="Lọc đăng ký học BVLN"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-center"><div class="flex items-center justify-center gap-1"><span>Học thực tế BVLN</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="actBvln" onclick="openTrackerColumnFilter(event,'boss','actBvln','Học thực tế BVLN')" title="Lọc học thực tế BVLN" aria-label="Lọc học thực tế BVLN"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-right"><div class="flex items-center justify-end gap-1"><span>Chi Phí Đầu Tư</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="cost" onclick="openTrackerColumnFilter(event,'boss','cost','Chi Phí Đầu Tư')" title="Lọc chi phí đầu tư" aria-label="Lọc chi phí đầu tư"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-purple-600 text-center"><div class="flex items-center justify-center gap-1"><span>Trạng thái</span><button type="button" class="tracker-filter-trigger text-purple-100 hover:text-white" data-filter-scope="boss" data-filter-key="status" onclick="openTrackerColumnFilter(event,'boss','status','Trạng thái')" title="Lọc trạng thái" aria-label="Lọc trạng thái"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-purple-600 text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -540,9 +582,9 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">Trạng thái</label>
                         <select id="actStatus" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none text-gray-900">
-                            <option value="UPCOMING">⏳ Sắp diễn ra</option>
-                            <option value="COMPLETED">✅ Hoàn thành</option>
-                            <option value="CANCELLED">❌ Đã hủy</option>
+                            <option value="UPCOMING">⏳ Chưa hoàn thành</option>
+                            <option value="COMPLETED">✅ Đã hoàn thành</option>
+                            <option value="CANCELLED">❌ Hủy HN</option>
                         </select>
                     </div>
                 </div>
@@ -728,7 +770,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                 <div><label for="reportStartDate" class="block text-xs font-bold text-gray-700 mb-1">Từ ngày</label><input id="reportStartDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
                 <div><label for="reportEndDate" class="block text-xs font-bold text-gray-700 mb-1">Đến ngày</label><input id="reportEndDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
-                <div class="sm:col-span-2"><label for="reportScope" class="block text-xs font-bold text-gray-700 mb-1">Phạm vi / hạng mục báo cáo</label><select id="reportScope" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold"><option value="all">Toàn bộ hoạt động</option><option value="group">HN cấp Nhóm</option><option value="tvnn">HN TVNN (Tiệc mặn & Tặng quà)</option><option value="boss">HN BOSS</option></select></div>
+                <div class="sm:col-span-2"><label for="reportScope" class="block text-xs font-bold text-gray-700 mb-1">Phạm vi / hạng mục báo cáo</label><select id="reportScope" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold"><option value="all">Toàn bộ hoạt động</option><option value="group">HN cấp Nhóm</option><option value="room">HN PHÒNG</option><option value="tvnn">HN TVNN (Tiệc mặn & Tặng quà)</option><option value="boss">HN BOSS</option></select></div>
             </div>
             <div id="reportPreview" class="mt-3 rounded-xl bg-bvblue-50 border border-bvblue-100 p-3 text-xs font-semibold text-bvblue-900" aria-live="polite"></div>
             <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -821,6 +863,7 @@
             renderMatrix();
             renderCalendar();
             renderGroupTable();
+            renderRoomTable();
             renderTvnnTable();
             renderBossTable();
             updateDashboard();
@@ -1133,11 +1176,13 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             mainTab = tab;
             document.getElementById('sectionCalendar').classList.toggle('hidden', tab !== 'calendar');
             document.getElementById('sectionGroup').classList.toggle('hidden', tab !== 'group');
+            document.getElementById('sectionRoom').classList.toggle('hidden', tab !== 'room');
             document.getElementById('sectionTvnn').classList.toggle('hidden', tab !== 'tvnn');
             document.getElementById('sectionBoss').classList.toggle('hidden', tab !== 'boss');
 
             const btnCal = document.getElementById('mainTabCalendar');
             const btnGro = document.getElementById('mainTabGroup');
+            const btnRoom = document.getElementById('mainTabRoom');
             const btnTvn = document.getElementById('mainTabTvnn');
             const btnBos = document.getElementById('mainTabBoss');
 
@@ -1146,10 +1191,12 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
             btnCal.className = tab === 'calendar' ? activeClass : inactiveClass;
             btnGro.className = tab === 'group' ? activeClass : inactiveClass;
+            btnRoom.className = tab === 'room' ? activeClass : inactiveClass;
             btnTvn.className = tab === 'tvnn' ? activeClass : inactiveClass;
             btnBos.className = tab === 'boss' ? activeClass : inactiveClass;
 
             if(tab === 'group') renderGroupTable();
+            if(tab === 'room') renderRoomTable();
             if(tab === 'tvnn') renderTvnnTable();
             if(tab === 'boss') renderBossTable();
         }
@@ -1414,9 +1461,169 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             `).join('');
         }
 
+        function normalizeActivityStatus(status) {
+            return status === 'COMPLETED' || status === 'CANCELLED' ? status : 'UPCOMING';
+        }
+
+        function getActivityStatusBadge(status) {
+            const normalized = normalizeActivityStatus(status);
+            const label = normalized === 'COMPLETED' ? 'Đã hoàn thành' : normalized === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành';
+            const color = normalized === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : normalized === 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800';
+            return `<span class="inline-block px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${color}">${label}</span>`;
+        }
+
+        function filterActivitiesByStatus(items, selectedStatus) {
+            return selectedStatus === 'ALL' ? items : items.filter(item => normalizeActivityStatus(item.status) === selectedStatus);
+        }
+
+        let trackerColumnFilters = { group: {}, room: {}, boss: {} };
+        let trackerFilterActiveScope = null;
+        let trackerFilterActiveColumn = null;
+
+        function getTrackerColumnFilterText(scope, item, key) {
+            const status = normalizeActivityStatus(item.status);
+            const statusLabel = status === 'COMPLETED' ? 'Đã hoàn thành' : status === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành';
+            const dateText = `${item.date || ''} ${formatDateVietnam(item.date)} ${item.session || ''} ${item.time || ''}`;
+            const titleText = `${item.title || ''} ${item.notes || ''}`;
+            if (key === 'date') return dateText;
+            if (key === 'title') return titleText;
+            if (key === 'status') return statusLabel;
+
+            if (scope === 'group') {
+                const format = item.groupFormat || 'Tiệc mặn';
+                const guest = parseInt(item.guestCount) || 0;
+                const costPerGuest = parseFloat(item.costPerGuest) || 0;
+                const normCostPer = costPerGuest > 0 && costPerGuest < 1000 ? costPerGuest * 1000 : costPerGuest;
+                const guestSupport = format === 'Tiệc mặn' ? Math.min(1600000, guest * normCostPer) : Math.min(20, guest) * 25000;
+                let speakerFee = parseFloat(item.speakerFee) || 0;
+                if (speakerFee > 0 && speakerFee < 1000) speakerFee *= 1000;
+                let transportFee = parseFloat(item.transportFee) || 0;
+                if (transportFee > 0 && transportFee < 1000) transportFee *= 1000;
+                if (key === 'format') return `${format} ${normCostPer}`;
+                if (key === 'guests') return `${guest} ${item.guestPlan || 0}`;
+                if (key === 'guestCost') return `${guestSupport} ${guestSupport.toLocaleString('vi-VN')}`;
+                if (key === 'speakerTransport') return `${speakerFee} ${transportFee} ${speakerFee.toLocaleString('vi-VN')} ${transportFee.toLocaleString('vi-VN')}`;
+                if (key === 'totalInvest') return `${guestSupport + speakerFee + transportFee} ${(guestSupport + speakerFee + transportFee).toLocaleString('vi-VN')}`;
+                if (key === 'fyp') return String(item.fyp ?? '');
+            }
+
+            if (scope === 'room') {
+                if (key === 'team') return String(item.teamInvited || '');
+                if (key === 'tvv') return String(item.tvvNames || '');
+                if (key === 'tvvCount') return String(Number(item.tvvCount) || 0);
+                if (key === 'guests') return `${Number(item.guestCount) || 0} ${Number(item.guestPlan) || 0}`;
+                if (key === 'contracts') return String(Number(item.closedContracts) || 0);
+                if (key === 'fyp') return String(Number(item.fyp) || 0);
+            }
+
+            if (scope === 'boss') {
+                const format = item.bossFormat || 'Tự điền';
+                const guest = parseInt(item.guestCount) || 0;
+                let support = 0;
+                if (format === 'Tiệc mặn') support = guest * 500000;
+                else if (format === 'Tặng quà') support = guest * 65000;
+                else {
+                    let cost = parseFloat(item.costPerGuest) || 0;
+                    if (cost > 0 && cost < 1000) cost *= 1000;
+                    support = guest * cost;
+                }
+                let speaker = parseFloat(item.speakerFee) || 0;
+                if (speaker > 0 && speaker < 1000) speaker *= 1000;
+                let transport = parseFloat(item.transportFee) || 0;
+                if (transport > 0 && transport < 1000) transport *= 1000;
+                const totalCost = support + speaker + transport;
+                if (key === 'format') return `${format} ${item.costPerGuest ?? ''}`;
+                if (key === 'team') return `${item.teamInvited || ''} ${item.tvvNames || ''}`;
+                if (key === 'tvvCount') return String(Number(item.tvvCount) || 0);
+                if (key === 'applicants') return `${guest} ${item.guestPlan || 0}`;
+                if (key === 'regBvln') return String(Number(item.regBvln) || 0);
+                if (key === 'actBvln') return String(Number(item.actBvln) || 0);
+                if (key === 'cost') return `${totalCost} ${totalCost.toLocaleString('vi-VN')}`;
+            }
+            return '';
+        }
+
+        function filterTrackerItems(items, scope) {
+            const filters = Object.entries(trackerColumnFilters[scope] || {}).filter(([, query]) => String(query || '').trim());
+            return filters.length ? items.filter(item => filters.every(([key, query]) => normalizeTvnnFilterText(getTrackerColumnFilterText(scope, item, key)).includes(normalizeTvnnFilterText(query)))) : items;
+        }
+
+        function updateTrackerFilterIndicators(scope) {
+            const palettes = { group: 'bg-indigo-800', room: 'bg-cyan-900', boss: 'bg-purple-800' };
+            document.querySelectorAll(`.tracker-filter-trigger[data-filter-scope="${scope}"]`).forEach(button => {
+                const active = Boolean(trackerColumnFilters[scope]?.[button.dataset.filterKey]);
+                button.classList.toggle(palettes[scope], active);
+                button.classList.toggle('rounded', active);
+                button.classList.toggle('px-1', active);
+            });
+        }
+
+        function closeTrackerFilterPopover() {
+            document.getElementById('trackerFilterPopover')?.remove();
+            trackerFilterActiveScope = null;
+            trackerFilterActiveColumn = null;
+        }
+
+        function openTrackerColumnFilter(event, scope, key, label) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeTvnnFilterPopover();
+            if (trackerFilterActiveScope === scope && trackerFilterActiveColumn === key && document.getElementById('trackerFilterPopover')) {
+                closeTrackerFilterPopover();
+                return;
+            }
+            closeTrackerFilterPopover();
+            trackerFilterActiveScope = scope;
+            trackerFilterActiveColumn = key;
+            const palette = { group: ['border-indigo-200', 'text-indigo-900', 'bg-indigo-600', 'hover:bg-indigo-700'], room: ['border-cyan-200', 'text-cyan-900', 'bg-cyan-700', 'hover:bg-cyan-800'], boss: ['border-purple-200', 'text-purple-900', 'bg-purple-700', 'hover:bg-purple-800'] }[scope];
+            const popover = document.createElement('div');
+            popover.id = 'trackerFilterPopover';
+            popover.className = `fixed z-[100] w-64 rounded-xl border ${palette[0]} bg-white p-3 shadow-xl`;
+            popover.innerHTML = `<div class="mb-2 flex items-center justify-between gap-2"><strong class="text-xs ${palette[1]}">Lọc: ${escapeHtml(label)}</strong><button type="button" onclick="closeTrackerFilterPopover()" class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div><input id="trackerColumnFilterInput" type="search" oninput="applyTrackerColumnFilterInput()" placeholder="Nhập từ khóa để lọc..." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100"><p class="mt-2 text-[10px] text-gray-500">Gõ một phần nội dung cần tìm. Bộ lọc ở các cột khác vẫn được giữ.</p><div class="mt-3 flex justify-between gap-2"><button type="button" onclick="clearTrackerCurrentColumnFilter()" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Xóa lọc cột này</button><button type="button" onclick="closeTrackerFilterPopover()" class="rounded-lg ${palette[2]} px-3 py-1.5 text-xs font-bold text-white ${palette[3]}">Đóng</button></div>`;
+            document.body.appendChild(popover);
+            const rect = event.currentTarget.getBoundingClientRect();
+            const width = 256;
+            const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+            let top = rect.bottom + 8;
+            if (top + 170 > window.innerHeight) top = Math.max(8, rect.top - 178);
+            popover.style.left = `${left}px`;
+            popover.style.top = `${top}px`;
+            const input = document.getElementById('trackerColumnFilterInput');
+            input.value = trackerColumnFilters[scope][key] || '';
+            input.focus();
+        }
+
+        function applyTrackerColumnFilterInput() {
+            if (!trackerFilterActiveScope || !trackerFilterActiveColumn) return;
+            const value = document.getElementById('trackerColumnFilterInput')?.value || '';
+            const filters = trackerColumnFilters[trackerFilterActiveScope];
+            if (value.trim()) filters[trackerFilterActiveColumn] = value.trim();
+            else delete filters[trackerFilterActiveColumn];
+            ({ group: renderGroupTable, room: renderRoomTable, boss: renderBossTable })[trackerFilterActiveScope]();
+        }
+
+        function clearTrackerCurrentColumnFilter() {
+            if (!trackerFilterActiveScope || !trackerFilterActiveColumn) return;
+            delete trackerColumnFilters[trackerFilterActiveScope][trackerFilterActiveColumn];
+            const input = document.getElementById('trackerColumnFilterInput');
+            if (input) input.value = '';
+            ({ group: renderGroupTable, room: renderRoomTable, boss: renderBossTable })[trackerFilterActiveScope]();
+        }
+
+        function resetTrackerColumnFilters(scope, showMessage = true) {
+            trackerColumnFilters[scope] = {};
+            if (trackerFilterActiveScope === scope) closeTrackerFilterPopover();
+            ({ group: renderGroupTable, room: renderRoomTable, boss: renderBossTable })[scope]();
+            if (showMessage) showToast(`Đã xóa bộ lọc HN ${scope === 'group' ? 'cấp Nhóm' : scope === 'room' ? 'PHÒNG' : 'BOSS'}.`);
+        }
+
+        document.addEventListener('click', event => {
+            if (document.getElementById('trackerFilterPopover') && !event.target.closest('#trackerFilterPopover') && !event.target.closest('.tracker-filter-trigger')) closeTrackerFilterPopover();
+        });
+
         function renderGroupTable() {
             const tbody = document.getElementById('groupTableBody');
-            const items = activities.filter(a => a.category === 'HN Nhóm');
+            const items = filterTrackerItems(activities.filter(a => a.category === 'HN Nhóm'), 'group');
             const sessionSortMinute = { 'Sáng': 0, 'Chiều': 12 * 60, 'Tối': 18 * 60 };
             const getSortMinute = item => {
                 if (item.time && /^\d{2}:\d{2}$/.test(item.time)) {
@@ -1434,7 +1641,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             let totalFyp = 0;
 
             if(items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu HN cấp Nhóm. Nhấn "Thêm HN cấp Nhóm" để tạo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-400 text-xs italic">Không có kế hoạch HN cấp Nhóm phù hợp với bộ lọc.</td></tr>`;
             } else {
                 tbody.innerHTML = items.map(item => {
                     const guest = parseInt(item.guestCount) || 0;
@@ -1473,6 +1680,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                             </td>
                             <td class="p-3 border-b text-right font-extrabold text-bvblue-700">${totalInvest.toLocaleString('vi-VN')} đ</td>
                             <td class="p-3 border-b text-right font-extrabold text-emerald-600">${item.fyp || 0} trđ</td>
+                            <td class="p-3 border-b text-center">${getActivityStatusBadge(item.status)}</td>
                             <td class="p-3 border-b text-center space-x-1">
                                 <button onclick="editActivity('${item.id}')" class="p-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
@@ -1486,15 +1694,147 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             document.getElementById('groupTotalGuests').innerText = totalGuests + ' khách';
             document.getElementById('groupTotalCost').innerText = totalCost.toLocaleString('vi-VN') + ' đ';
             document.getElementById('groupTotalFyp').innerText = totalFyp.toFixed(1) + ' trđ';
+            updateTrackerFilterIndicators('group');
         }
+
+        function renderRoomTable() {
+            const tbody = document.getElementById('roomTableBody');
+            const items = filterTrackerItems(activities.filter(item => item.category === 'HN Phòng'), 'room');
+            const sessionMinute = { 'Sáng': 0, 'Chiều': 720, 'Tối': 1080 };
+            const minuteOf = item => {
+                if (item.time && /^\d{2}:\d{2}$/.test(item.time)) {
+                    const [hour, minute] = item.time.split(':').map(Number);
+                    return hour * 60 + minute;
+                }
+                return sessionMinute[item.session] ?? 1440;
+            };
+            items.sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))
+                || minuteOf(a) - minuteOf(b)
+                || String(a.title || '').localeCompare(String(b.title || ''), 'vi'));
+
+            let guests = 0, contracts = 0, fyp = 0;
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="p-8 text-center text-gray-400 text-xs italic">Không có kế hoạch HN PHÒNG phù hợp với bộ lọc. Nhấn “Xóa bộ lọc” để xem lại toàn bộ.</td></tr>';
+            } else {
+                tbody.innerHTML = items.map(item => {
+                    const guestCount = Number(item.guestCount) || 0;
+                    const contractCount = Number(item.closedContracts) || 0;
+                    const fypValue = Number(item.fyp) || 0;
+                    guests += guestCount;
+                    contracts += contractCount;
+                    fyp += fypValue;
+                    return `<tr class="hover:bg-cyan-50/50 transition">
+                        <td class="p-3 border-b font-bold text-gray-800 whitespace-nowrap">${formatDateVietnam(item.date)}<br><span class="text-[10px] text-gray-400 font-normal">${escapeHtml(item.session || '--')}${item.time ? ` · ${escapeHtml(item.time)}` : ''}</span></td>
+                        <td class="p-3 border-b font-extrabold text-cyan-900">${escapeHtml(item.title || '')}<br><span class="text-[10px] font-normal text-gray-500"><i class="fa-solid fa-location-dot mr-1 text-cyan-600"></i>${escapeHtml(item.notes || '--')}</span></td>
+                        <td class="p-3 border-b font-semibold text-gray-700">${escapeHtml(item.teamInvited || '--')}</td>
+                        <td class="p-3 border-b text-gray-600">${escapeHtml(item.tvvNames || '--')}</td>
+                        <td class="p-3 border-b text-center font-bold text-cyan-800">${Number(item.tvvCount) || 0}</td>
+                        <td class="p-3 border-b text-center font-bold text-gray-800">${guestCount} <span class="text-[10px] text-gray-400 font-normal">(${Number(item.guestPlan) || 0} KH)</span></td>
+                        <td class="p-3 border-b text-center font-extrabold text-indigo-800">${contractCount}</td>
+                        <td class="p-3 border-b text-right font-extrabold text-emerald-700">${fypValue.toLocaleString('vi-VN')} trđ</td>
+                        <td class="p-3 border-b text-center">${getActivityStatusBadge(item.status)}</td>
+                        <td class="p-3 border-b text-center whitespace-nowrap space-x-1"><button onclick="editActivity('${escapeHtml(item.id)}')" class="p-1.5 bg-cyan-100 hover:bg-cyan-200 text-cyan-800 rounded-lg" title="Chỉnh sửa / cập nhật"><i class="fa-solid fa-pen"></i></button><button onclick="deleteActivity('${escapeHtml(item.id)}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button></td>
+                    </tr>`;
+                }).join('');
+            }
+            document.getElementById('roomTotalCount').innerText = items.length;
+            document.getElementById('roomTotalGuests').innerText = `${guests} khách`;
+            document.getElementById('roomTotalContracts').innerText = `${contracts} HĐ`;
+            document.getElementById('roomTotalFyp').innerText = `${fyp.toFixed(1)} trđ`;
+            updateTrackerFilterIndicators('room');
+        }
+
+        let tvnnColumnFilters = {};
+        let tvnnFilterActiveColumn = null;
+
+        function normalizeTvnnFilterText(value) {
+            return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLocaleLowerCase('vi').trim();
+        }
+
+        function getTvnnColumnFilterText(item, key) {
+            const status = normalizeActivityStatus(item.status);
+            const statusLabel = status === 'COMPLETED' ? 'Đã hoàn thành' : status === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành';
+            switch (key) {
+                case 'date': return `${item.date || ''} ${formatDateVietnam(item.date)} ${item.session || ''} ${item.time || ''}`;
+                case 'title': return `${item.title || ''} ${item.notes || ''}`;
+                case 'format': return `${item.category || ''} ${item.category === 'TVNN Tiệc mặn' ? 'Tiệc mặn' : 'Tặng quà'}`;
+                case 'team': return `${item.teamInvited || ''} ${item.tvvNames || ''}`;
+                case 'tvvCount': return String(item.tvvCount ?? '');
+                case 'guests': return `${item.guestCount ?? ''} ${item.guestPlan ?? ''}`;
+                case 'contracts': return String(item.closedContracts ?? '');
+                case 'fyp': return String(item.fyp ?? '');
+                case 'status': return statusLabel;
+                default: return '';
+            }
+        }
+
+        function closeTvnnFilterPopover() {
+            document.getElementById('tvnnFilterPopover')?.remove();
+            tvnnFilterActiveColumn = null;
+        }
+
+        function openTvnnColumnFilter(event, key, label) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeTrackerFilterPopover();
+            if (tvnnFilterActiveColumn === key && document.getElementById('tvnnFilterPopover')) {
+                closeTvnnFilterPopover();
+                return;
+            }
+            closeTvnnFilterPopover();
+            tvnnFilterActiveColumn = key;
+            const popover = document.createElement('div');
+            popover.id = 'tvnnFilterPopover';
+            popover.className = 'fixed z-[100] w-64 rounded-xl border border-amber-200 bg-white p-3 shadow-xl';
+            popover.innerHTML = `<div class="mb-2 flex items-center justify-between gap-2"><strong class="text-xs text-amber-900">Lọc: ${escapeHtml(label)}</strong><button type="button" onclick="closeTvnnFilterPopover()" class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div><input id="tvnnColumnFilterInput" type="search" oninput="applyTvnnColumnFilterInput()" placeholder="Nhập từ khóa để lọc..." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100"><p class="mt-2 text-[10px] text-gray-500">Gõ một phần nội dung cần tìm. Bộ lọc ở các cột khác vẫn được giữ.</p><div class="mt-3 flex justify-between gap-2"><button type="button" onclick="clearTvnnCurrentColumnFilter()" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Xóa lọc cột này</button><button type="button" onclick="closeTvnnFilterPopover()" class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700">Đóng</button></div>`;
+            document.body.appendChild(popover);
+            const rect = event.currentTarget.getBoundingClientRect();
+            const width = 256;
+            const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+            let top = rect.bottom + 8;
+            if (top + 170 > window.innerHeight) top = Math.max(8, rect.top - 178);
+            popover.style.left = `${left}px`;
+            popover.style.top = `${top}px`;
+            const input = document.getElementById('tvnnColumnFilterInput');
+            input.value = tvnnColumnFilters[key] || '';
+            input.focus();
+        }
+
+        function applyTvnnColumnFilterInput() {
+            if (!tvnnFilterActiveColumn) return;
+            const value = document.getElementById('tvnnColumnFilterInput')?.value || '';
+            if (value.trim()) tvnnColumnFilters[tvnnFilterActiveColumn] = value.trim();
+            else delete tvnnColumnFilters[tvnnFilterActiveColumn];
+            renderTvnnTable();
+        }
+
+        function clearTvnnCurrentColumnFilter() {
+            if (tvnnFilterActiveColumn) delete tvnnColumnFilters[tvnnFilterActiveColumn];
+            const input = document.getElementById('tvnnColumnFilterInput');
+            if (input) input.value = '';
+            renderTvnnTable();
+        }
+
+        function resetTvnnFilters(showMessage = true) {
+            tvnnColumnFilters = {};
+            closeTvnnFilterPopover();
+            renderTvnnTable();
+            if (showMessage) showToast('Đã xóa toàn bộ bộ lọc HN TVNN.');
+        }
+
+        document.addEventListener('click', event => {
+            if (document.getElementById('tvnnFilterPopover') && !event.target.closest('#tvnnFilterPopover') && !event.target.closest('.tvnn-filter-trigger')) {
+                closeTvnnFilterPopover();
+            }
+        });
 
         function renderTvnnTable() {
             const tbody = document.getElementById('tvnnTableBody');
-            const subFilter = document.getElementById('tvnnSubFilter').value;
             
             let items = activities.filter(a => a.category === 'TVNN Tiệc mặn' || a.category === 'TVNN Tặng quà');
-            if(subFilter !== 'ALL') {
-                items = items.filter(a => a.category === subFilter);
+            const activeFilters = Object.entries(tvnnColumnFilters).filter(([, query]) => String(query || '').trim());
+            if (activeFilters.length) {
+                items = items.filter(item => activeFilters.every(([key, query]) => normalizeTvnnFilterText(getTvnnColumnFilterText(item, key)).includes(normalizeTvnnFilterText(query))));
             }
             const sessionSortMinute = { 'Sáng': 0, 'Chiều': 12 * 60, 'Tối': 18 * 60 };
             const getSortMinute = item => {
@@ -1512,7 +1852,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             let totalFyp = 0;
 
             if(items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu Hội nghị TVNN. Nhấn "Thêm HN TVNN" để tạo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-400 text-xs italic">Không có kế hoạch HN TVNN thuộc trạng thái/hình thức đang chọn.</td></tr>`;
             } else {
                 tbody.innerHTML = items.map(item => {
                     const guest = parseInt(item.guestCount) || 0;
@@ -1532,6 +1872,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                             <td class="p-3 border-b text-center font-bold text-gray-800">${guest} <span class="text-[10px] text-gray-400 font-normal">(KH: ${item.guestPlan || 0})</span></td>
                             <td class="p-3 border-b text-center font-extrabold text-purple-700">${item.closedContracts || 0} HĐ</td>
                             <td class="p-3 border-b text-right font-extrabold text-emerald-600">${item.fyp || 0} trđ</td>
+                            <td class="p-3 border-b text-center">${getActivityStatusBadge(item.status)}</td>
                             <td class="p-3 border-b text-center space-x-1">
                                 <button onclick="editActivity('${item.id}')" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
@@ -1544,11 +1885,17 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             document.getElementById('tvnnTotalCount').innerText = items.length;
             document.getElementById('tvnnTotalGuests').innerText = totalGuests + ' khách';
             document.getElementById('tvnnTotalFyp').innerText = totalFyp.toFixed(1) + ' trđ';
+            document.querySelectorAll('.tvnn-filter-trigger').forEach(button => {
+                const active = Boolean(tvnnColumnFilters[button.dataset.filterKey]);
+                button.classList.toggle('bg-amber-800', active);
+                button.classList.toggle('rounded', active);
+                button.classList.toggle('px-1', active);
+            });
         }
 
         function renderBossTable() {
             const tbody = document.getElementById('bossTableBody');
-            const items = activities.filter(a => a.category === 'HN BOSS Tuyển dụng');
+            const items = filterTrackerItems(activities.filter(a => a.category === 'HN BOSS Tuyển dụng'), 'boss');
             
             let totalGuests = 0;
             let totalRegBvln = 0;
@@ -1556,7 +1903,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             let totalSupport = 0;
 
             if(items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-400 text-xs italic">Chưa có dữ liệu HN BOSS Tuyển dụng. Nhấn "Thêm HN BOSS" để tạo.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-400 text-xs italic">Không có kế hoạch HN BOSS phù hợp với bộ lọc.</td></tr>`;
             } else {
                 tbody.innerHTML = items.map(item => {
                     const guest = parseInt(item.guestCount) || 0;
@@ -1598,6 +1945,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                             <td class="p-3 border-b text-center font-extrabold text-indigo-800">${regBvln} UV</td>
                             <td class="p-3 border-b text-center font-extrabold text-emerald-700">${actBvln} UV</td>
                             <td class="p-3 border-b text-right font-extrabold text-bvblue-700">${totalInvest.toLocaleString('vi-VN')} đ</td>
+                            <td class="p-3 border-b text-center">${getActivityStatusBadge(item.status)}</td>
                             <td class="p-3 border-b text-center space-x-1">
                                 <button onclick="editActivity('${item.id}')" class="p-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg" title="Cập nhật kết quả"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="deleteActivity('${item.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg" title="Xóa"><i class="fa-solid fa-trash-can"></i></button>
@@ -1611,6 +1959,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             document.getElementById('bossTotalGuests').innerText = totalGuests + ' ứng viên';
             document.getElementById('bossTotalRegBvln').innerText = totalRegBvln + ' UV';
             document.getElementById('bossTotalActBvln').innerText = totalActBvln + ' UV';
+            updateTrackerFilterIndicators('boss');
         }
 
         function getFilteredActivities() {
@@ -1630,6 +1979,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
         function handleGlobalSearch() {
             if (mainTab === 'calendar') applyFilters();
             if (mainTab === 'group') renderGroupTable();
+            if (mainTab === 'room') renderRoomTable();
             if (mainTab === 'tvnn') renderTvnnTable();
             if (mainTab === 'boss') renderBossTable();
         }
@@ -1638,7 +1988,10 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             document.getElementById('globalSearchInput').value = '';
             document.getElementById('categoryFilter').value = 'ALL';
             document.getElementById('priorityFilter').value = 'ALL';
-            document.getElementById('tvnnSubFilter').value = 'ALL';
+            resetTvnnFilters(false);
+            resetTrackerColumnFilters('group', false);
+            resetTrackerColumnFilters('room', false);
+            resetTrackerColumnFilters('boss', false);
             currentDate = getVietnamNow();
             currentWeekStart = getMonday(currentDate);
             currentView = 'matrix';
@@ -1724,6 +2077,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             renderMatrix();
             renderCalendar();
             renderGroupTable();
+            renderRoomTable();
             renderTvnnTable();
             renderBossTable();
             updateDashboard();
@@ -2055,6 +2409,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             renderMatrix();
             renderCalendar();
             renderGroupTable();
+            renderRoomTable();
             renderTvnnTable();
             renderBossTable();
             updateDashboard();
@@ -2127,6 +2482,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 renderMatrix();
                 renderCalendar();
                 renderGroupTable();
+                renderRoomTable();
                 renderTvnnTable();
                 renderBossTable();
                 updateDashboard();
@@ -2136,7 +2492,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function exportData() {
             const payload = buildJsonEnvelope(activities, false);
-            downloadJsonPayload(payload, `BVNT_Lich_v22_${formatDateIso(getVietnamNow())}.json`);
+            downloadJsonPayload(payload, `BVNT_Lich_v27_${formatDateIso(getVietnamNow())}.json`);
             showToast('Đã xuất file JSON thành công!');
         }
 
@@ -2271,6 +2627,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 renderMatrix();
                 renderCalendar();
                 renderGroupTable();
+                renderRoomTable();
                 renderTvnnTable();
                 renderBossTable();
                 updateDashboard();
@@ -2315,12 +2672,13 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
             const scope = document.getElementById('reportScope').value;
-            const scopeLabels = { all: 'Toàn bộ hoạt động', group: 'HN cấp Nhóm', tvnn: 'HN TVNN (Tiệc mặn & Tặng quà)', boss: 'HN BOSS' };
+            const scopeLabels = { all: 'Toàn bộ hoạt động', group: 'HN cấp Nhóm', room: 'HN PHÒNG', tvnn: 'HN TVNN (Tiệc mặn & Tặng quà)', boss: 'HN BOSS' };
             if (!parseIsoLocal(start) || !parseIsoLocal(end) || start > end) {
                 return { error: 'Vui lòng chọn khoảng ngày hợp lệ; ngày bắt đầu không được sau ngày kết thúc.' };
             }
             const categoryMatches = item => scope === 'all'
                 || (scope === 'group' && item.category === 'HN Nhóm')
+                || (scope === 'room' && item.category === 'HN Phòng')
                 || (scope === 'tvnn' && (item.category === 'TVNN Tiệc mặn' || item.category === 'TVNN Tặng quà'))
                 || (scope === 'boss' && item.category === 'HN BOSS Tuyển dụng');
             const records = activities.filter(item => item.date >= start && item.date <= end && categoryMatches(item))
@@ -2368,7 +2726,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 return;
             }
             const summary = summarizeReport(report.records);
-            preview.innerHTML = `<strong>${escapeHtml(report.scopeLabel)}</strong> · Kỳ ${formatDateVietnam(report.start)} – ${formatDateVietnam(report.end)}: <strong>${summary.total} lịch</strong>; ${summary.completed} hoàn thành; ${summary.cancelled} đã hủy; ${summary.guests} khách và ${summary.candidates} ứng viên dự. Chi phí đầu tư ước tính: ${formatCurrencyVnd(summary.investment)}.`;
+            preview.innerHTML = `<strong>${escapeHtml(report.scopeLabel)}</strong> · Kỳ ${formatDateVietnam(report.start)} – ${formatDateVietnam(report.end)}: <strong>${summary.total} lịch</strong>; ${summary.completed} đã hoàn thành; ${summary.upcoming} chưa hoàn thành; ${summary.cancelled} hủy HN; ${summary.guests} khách và ${summary.candidates} ứng viên dự. Chi phí đầu tư ước tính: ${formatCurrencyVnd(summary.investment)}.`;
             if (report.records.length > 132) preview.innerHTML += '<br><span class="text-amber-700">Lưu ý: PPTX giới hạn 12 trang, nên một phần lịch chi tiết có thể chỉ có trong Excel.</span>';
         }
 
@@ -2385,7 +2743,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 ['Kỳ báo cáo', `${formatDateVietnam(start)} – ${formatDateVietnam(end)}`],
                 ['Ngày giờ xuất (Việt Nam)', generated],
                 [], ['Chỉ số', 'Giá trị'],
-                ['Tổng số lịch', summary.total], ['Hoàn thành', summary.completed], ['Sắp diễn ra', summary.upcoming], ['Đã hủy', summary.cancelled],
+                ['Tổng số lịch', summary.total], ['Đã hoàn thành', summary.completed], ['Chưa hoàn thành', summary.upcoming], ['Hủy HN', summary.cancelled],
                 ...(scope === 'all' ? [
                     ['Khách tham dự (không gồm BOSS)', summary.guests], ['Ứng viên BOSS tham dự', summary.candidates], ['Hợp đồng chốt ngay', summary.contracts],
                     ['FYP ký thực tế T+5 (triệu đồng)', Number(summary.fyp.toFixed(1))], ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
@@ -2442,8 +2800,8 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 ['HỢP ĐỒNG CHỐT', summary.contracts, '#6941a5'], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`, '#0b7a4b'], ['CHI PHÍ ĐẦU TƯ', formatCurrencyVnd(summary.investment), '#005BAC']
             ];
             const cardHtml = cards.map(([label, value, color]) => `<div style="background:#f4f8fc;border:1px solid #dce7f1;border-left:6px solid ${color};border-radius:14px;padding:18px"><div style="font-size:13px;font-weight:700;color:#526477;letter-spacing:.5px">${label}</div><div style="font-size:28px;font-weight:800;color:${color};margin-top:8px">${escapeHtml(String(value))}</div></div>`).join('');
-            const detailHtml = records.slice(0, 12).map(item => `<tr><td>${formatDateVietnam(item.date)}${item.time ? ' · ' + escapeHtml(item.time) : ''}</td><td>${escapeHtml(item.title || '')}</td><td>${escapeHtml(item.category || '')}</td><td>${escapeHtml(item.status === 'COMPLETED' ? 'Hoàn thành' : item.status === 'CANCELLED' ? 'Đã hủy' : 'Sắp diễn ra')}</td></tr>`).join('');
-            poster.innerHTML = `<div style="background:#003B73;color:white;border-radius:18px;padding:30px 36px"><div style="font-size:16px;font-weight:700;color:#FDB813;letter-spacing:2px">BẢO VIỆT NHÂN THỌ</div><h1 style="font-size:34px;margin:12px 0 6px">BÁO CÁO LỊCH HOẠT ĐỘNG</h1><div style="font-size:17px;color:#e3edf6">Kỳ ${formatDateVietnam(start)} – ${formatDateVietnam(end)} · GMT+7</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0">${cardHtml}</div><div style="padding:14px 18px;background:#fff8e8;border:1px solid #f4dea7;border-radius:12px;font-size:15px;font-weight:700;color:#704f00">${summary.cancelled} hoạt động đã hủy · ${summary.contracts} hợp đồng chốt ngay</div><h2 style="font-size:21px;color:#003B73;margin:26px 0 10px">HOẠT ĐỘNG NỔI BẬT</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e6f0fa;text-align:left"><th style="padding:12px;border-bottom:2px solid #aac5de">Ngày / Giờ</th><th style="padding:12px;border-bottom:2px solid #aac5de">Hoạt động</th><th style="padding:12px;border-bottom:2px solid #aac5de">Phân loại</th><th style="padding:12px;border-bottom:2px solid #aac5de">Trạng thái</th></tr></thead><tbody>${detailHtml || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b">Không có hoạt động trong kỳ</td></tr>'}</tbody></table>${records.length > 12 ? `<p style="font-size:12px;color:#64748b;margin-top:10px">Poster hiển thị 12/${records.length} lịch; file Excel chứa đầy đủ chi tiết.</p>` : ''}<div style="font-size:11px;color:#64748b;margin-top:24px;border-top:1px solid #dce7f1;padding-top:12px">Báo cáo được tạo từ dữ liệu lịch trong ứng dụng · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date())}</div>`;
+            const detailHtml = records.slice(0, 12).map(item => `<tr><td>${formatDateVietnam(item.date)}${item.time ? ' · ' + escapeHtml(item.time) : ''}</td><td>${escapeHtml(item.title || '')}</td><td>${escapeHtml(item.category || '')}</td><td>${escapeHtml(item.status === 'COMPLETED' ? 'Đã hoàn thành' : item.status === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành')}</td></tr>`).join('');
+            poster.innerHTML = `<div style="background:#003B73;color:white;border-radius:18px;padding:30px 36px"><div style="font-size:16px;font-weight:700;color:#FDB813;letter-spacing:2px">BẢO VIỆT NHÂN THỌ</div><h1 style="font-size:34px;margin:12px 0 6px">BÁO CÁO LỊCH HOẠT ĐỘNG</h1><div style="font-size:17px;color:#e3edf6">Kỳ ${formatDateVietnam(start)} – ${formatDateVietnam(end)} · GMT+7</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0">${cardHtml}</div><div style="padding:14px 18px;background:#fff8e8;border:1px solid #f4dea7;border-radius:12px;font-size:15px;font-weight:700;color:#704f00">${summary.cancelled} HN đã hủy · ${summary.contracts} hợp đồng chốt ngay</div><h2 style="font-size:21px;color:#003B73;margin:26px 0 10px">HOẠT ĐỘNG NỔI BẬT</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e6f0fa;text-align:left"><th style="padding:12px;border-bottom:2px solid #aac5de">Ngày / Giờ</th><th style="padding:12px;border-bottom:2px solid #aac5de">Hoạt động</th><th style="padding:12px;border-bottom:2px solid #aac5de">Phân loại</th><th style="padding:12px;border-bottom:2px solid #aac5de">Trạng thái</th></tr></thead><tbody>${detailHtml || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b">Không có hoạt động trong kỳ</td></tr>'}</tbody></table>${records.length > 12 ? `<p style="font-size:12px;color:#64748b;margin-top:10px">Poster hiển thị 12/${records.length} lịch; file Excel chứa đầy đủ chi tiết.</p>` : ''}<div style="font-size:11px;color:#64748b;margin-top:24px;border-top:1px solid #dce7f1;padding-top:12px">Báo cáo được tạo từ dữ liệu lịch trong ứng dụng · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date())}</div>`;
             poster.querySelector('h1').textContent = `BÁO CÁO ${scopeLabel.toUpperCase()}`;
             document.body.appendChild(poster);
             try {
@@ -2485,14 +2843,14 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             cover.addText(`BÁO CÁO ${scopeLabel.toUpperCase()}`, { x: 0.65, y: 0.72, w: 11.6, h: 0.52, fontFace: 'Aptos Display', fontSize: 26, bold: true, color: 'FFFFFF' });
             cover.addText(`Kỳ báo cáo: ${formatDateVietnam(start)} – ${formatDateVietnam(end)}`, { x: 0.68, y: 1.82, w: 8, h: 0.34, fontSize: 16, bold: true, color: blue });
             const metricCards = scope === 'all' ? [
-                ['Tổng lịch', String(summary.total)], ['Hoàn thành', String(summary.completed)], ['Đã hủy', String(summary.cancelled)],
+                ['Tổng lịch', String(summary.total)], ['Đã hoàn thành', String(summary.completed)], ['Hủy HN', String(summary.cancelled)],
                 ['Khách dự', String(summary.guests)], ['Ứng viên BOSS', String(summary.candidates)], ['Hợp đồng', String(summary.contracts)],
                 ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`], ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
             ] : scope === 'boss' ? [
                 ['Tổng HN BOSS', String(summary.total)], ['Ứng viên dự', String(summary.candidates)], ['TVV dự', String(tvvAttendance)],
                 ['Đăng ký BVLN', String(bossRegistrations)], ['Học thực tế BVLN', String(bossAttendance)], ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
             ] : [
-                ['Tổng hội nghị', String(summary.total)], ['Hoàn thành', String(summary.completed)], ['Đã hủy', String(summary.cancelled)],
+                ['Tổng hội nghị', String(summary.total)], ['Đã hoàn thành', String(summary.completed)], ['Hủy HN', String(summary.cancelled)],
                 ['Khách dự', String(summary.guests)], ['Hợp đồng', String(summary.contracts)], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`],
                 ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
             ];
@@ -2525,7 +2883,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 ]];
                 exported.slice(offset, offset + maxRowsPerSlide).forEach(item => rows.push([
                     formatDateVietnam(item.date), item.time || item.session || '', item.title || '', item.category || '',
-                    item.status === 'COMPLETED' ? 'Hoàn thành' : item.status === 'CANCELLED' ? 'Đã hủy' : 'Sắp diễn ra',
+                    item.status === 'COMPLETED' ? 'Đã hoàn thành' : item.status === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành',
                     String(Number(item.guestCount) || 0)
                 ]));
                 slide.addTable(rows, {
