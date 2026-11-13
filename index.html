@@ -314,9 +314,10 @@
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5">Quản lý các hội nghị cấp Nhóm với tùy chọn Tiệc mặn / Tặng quà, chi phí Thuyết trình, Hỗ trợ xe và Doanh thu ký T+5.</p>
                 </div>
-                <button onclick="openModalForCategory('HN Nhóm')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition">
-                    <i class="fa-solid fa-plus mr-1.5"></i> Thêm HN cấp Nhóm
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openReportModal('group')" class="bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
+                    <button onclick="openModalForCategory('HN Nhóm')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition"><i class="fa-solid fa-plus mr-1.5"></i> Thêm HN cấp Nhóm</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -373,6 +374,7 @@
                         <option value="TVNN Tiệc mặn">🍲 TVNN Tiệc mặn (500k/cuộc)</option>
                         <option value="TVNN Tặng quà">🎁 TVNN Tặng quà (65k)</option>
                     </select>
+                    <button onclick="openReportModal('tvnn')" class="bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
                     <button onclick="openModalForCategory('TVNN Tiệc mặn')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow transition">
                         <i class="fa-solid fa-plus mr-1"></i> Thêm HN TVNN
                     </button>
@@ -423,9 +425,10 @@
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5">Quản lý các chương trình BOSS Tuyển dụng với mức chi phí tùy chọn tự điền, theo dõi Ứng viên đăng ký và tham dự học BVLN.</p>
                 </div>
-                <button onclick="openModalForCategory('HN BOSS Tuyển dụng')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition">
-                    <i class="fa-solid fa-plus mr-1.5"></i> Thêm HN BOSS
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openReportModal('boss')" class="bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center shadow-sm transition"><i class="fa-solid fa-file-export mr-1.5"></i>Xuất báo cáo</button>
+                    <button onclick="openModalForCategory('HN BOSS Tuyển dụng')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center shadow transition"><i class="fa-solid fa-plus mr-1.5"></i> Thêm HN BOSS</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -725,6 +728,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                 <div><label for="reportStartDate" class="block text-xs font-bold text-gray-700 mb-1">Từ ngày</label><input id="reportStartDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
                 <div><label for="reportEndDate" class="block text-xs font-bold text-gray-700 mb-1">Đến ngày</label><input id="reportEndDate" type="date" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm"></div>
+                <div class="sm:col-span-2"><label for="reportScope" class="block text-xs font-bold text-gray-700 mb-1">Phạm vi / hạng mục báo cáo</label><select id="reportScope" onchange="updateReportPreview()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold"><option value="all">Toàn bộ hoạt động</option><option value="group">HN cấp Nhóm</option><option value="tvnn">HN TVNN (Tiệc mặn & Tặng quà)</option><option value="boss">HN BOSS</option></select></div>
             </div>
             <div id="reportPreview" class="mt-3 rounded-xl bg-bvblue-50 border border-bvblue-100 p-3 text-xs font-semibold text-bvblue-900" aria-live="polite"></div>
             <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -2310,12 +2314,18 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
         function getReportRecords() {
             const start = document.getElementById('reportStartDate').value;
             const end = document.getElementById('reportEndDate').value;
+            const scope = document.getElementById('reportScope').value;
+            const scopeLabels = { all: 'Toàn bộ hoạt động', group: 'HN cấp Nhóm', tvnn: 'HN TVNN (Tiệc mặn & Tặng quà)', boss: 'HN BOSS' };
             if (!parseIsoLocal(start) || !parseIsoLocal(end) || start > end) {
                 return { error: 'Vui lòng chọn khoảng ngày hợp lệ; ngày bắt đầu không được sau ngày kết thúc.' };
             }
-            const records = activities.filter(item => item.date >= start && item.date <= end)
+            const categoryMatches = item => scope === 'all'
+                || (scope === 'group' && item.category === 'HN Nhóm')
+                || (scope === 'tvnn' && (item.category === 'TVNN Tiệc mặn' || item.category === 'TVNN Tặng quà'))
+                || (scope === 'boss' && item.category === 'HN BOSS Tuyển dụng');
+            const records = activities.filter(item => item.date >= start && item.date <= end && categoryMatches(item))
                 .sort((a, b) => `${a.date}T${a.time || '00:00'}`.localeCompare(`${b.date}T${b.time || '00:00'}`));
-            return { start, end, records };
+            return { start, end, scope, scopeLabel: scopeLabels[scope] || scopeLabels.all, records };
         }
 
         function summarizeReport(records) {
@@ -2336,11 +2346,12 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             };
         }
 
-        function openReportModal() {
+        function openReportModal(scope = 'all') {
             const now = getVietnamNow();
             const today = formatDateIso(now);
             document.getElementById('reportStartDate').value = `${today.slice(0, 7)}-01`;
             document.getElementById('reportEndDate').value = today;
+            document.getElementById('reportScope').value = scope;
             updateReportPreview();
             document.getElementById('reportModal').classList.remove('hidden');
         }
@@ -2357,7 +2368,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 return;
             }
             const summary = summarizeReport(report.records);
-            preview.innerHTML = `Kỳ ${formatDateVietnam(report.start)} – ${formatDateVietnam(report.end)}: <strong>${summary.total} lịch</strong>; ${summary.completed} hoàn thành; ${summary.cancelled} đã hủy; ${summary.guests} khách và ${summary.candidates} ứng viên dự. Chi phí đầu tư ước tính: ${formatCurrencyVnd(summary.investment)}.`;
+            preview.innerHTML = `<strong>${escapeHtml(report.scopeLabel)}</strong> · Kỳ ${formatDateVietnam(report.start)} – ${formatDateVietnam(report.end)}: <strong>${summary.total} lịch</strong>; ${summary.completed} hoàn thành; ${summary.cancelled} đã hủy; ${summary.guests} khách và ${summary.candidates} ứng viên dự. Chi phí đầu tư ước tính: ${formatCurrencyVnd(summary.investment)}.`;
             if (report.records.length > 132) preview.innerHTML += '<br><span class="text-amber-700">Lưu ý: PPTX giới hạn 12 trang, nên một phần lịch chi tiết có thể chỉ có trong Excel.</span>';
         }
 
@@ -2365,17 +2376,29 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             if (!window.XLSX) { alert('Không tải được thư viện Excel. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
             const report = getReportRecords();
             if (report.error) { alert(report.error); return; }
-            const { records, start, end } = report;
+            const { records, start, end, scopeLabel, scope } = report;
             const summary = summarizeReport(records);
             const generated = new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date());
             const summaryRows = [
-                ['BÁO CÁO THEO DÕI LỊCH HOẠT ĐỘNG – BẢO VIỆT NHÂN THỌ'],
+                [`BÁO CÁO ${scopeLabel.toUpperCase()} – BẢO VIỆT NHÂN THỌ`],
+                ['Phạm vi báo cáo', scopeLabel],
                 ['Kỳ báo cáo', `${formatDateVietnam(start)} – ${formatDateVietnam(end)}`],
                 ['Ngày giờ xuất (Việt Nam)', generated],
                 [], ['Chỉ số', 'Giá trị'],
                 ['Tổng số lịch', summary.total], ['Hoàn thành', summary.completed], ['Sắp diễn ra', summary.upcoming], ['Đã hủy', summary.cancelled],
-                ['Khách tham dự (không gồm BOSS)', summary.guests], ['Ứng viên BOSS tham dự', summary.candidates], ['Hợp đồng chốt ngay', summary.contracts],
-                ['FYP ký thực tế T+5 (triệu đồng)', Number(summary.fyp.toFixed(1))], ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
+                ...(scope === 'all' ? [
+                    ['Khách tham dự (không gồm BOSS)', summary.guests], ['Ứng viên BOSS tham dự', summary.candidates], ['Hợp đồng chốt ngay', summary.contracts],
+                    ['FYP ký thực tế T+5 (triệu đồng)', Number(summary.fyp.toFixed(1))], ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
+                ] : scope === 'boss' ? [
+                    ['Ứng viên tham dự', summary.candidates],
+                    ['TVV dự', records.reduce((sum, item) => sum + (Number(item.tvvCount) || 0), 0)],
+                    ['Đăng ký học BVLN', records.reduce((sum, item) => sum + (Number(item.regBvln) || 0), 0)],
+                    ['Học thực tế BVLN', records.reduce((sum, item) => sum + (Number(item.actBvln) || 0), 0)],
+                    ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
+                ] : [
+                    ['Khách tham dự', summary.guests], ['Hợp đồng chốt ngay', summary.contracts],
+                    ['FYP ký thực tế T+5 (triệu đồng)', Number(summary.fyp.toFixed(1))], ['Tổng chi phí đầu tư (VNĐ)', Math.round(summary.investment)]
+                ])
             ];
             const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
             summarySheet['!cols'] = [{ wch: 34 }, { wch: 30 }];
@@ -2384,7 +2407,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 const cost = getActivityInvestment(item);
                 let perGuest = Number.parseFloat(item.costPerGuest) || 0;
                 if (perGuest > 0 && perGuest < 1000) perGuest *= 1000;
-                return [item.date || '', item.time || '', item.session || '', item.title || '', item.category || '', item.priority || '', item.status || '', item.category === 'HN Nhóm' ? item.groupFormat || '' : item.category === 'HN BOSS Tuyển dụng' ? item.bossFormat || '' : '', item.notes || '', item.teamInvited || '', item.tvvNames || '', Number(item.tvvCount) || 0, Number(item.guestPlan) || 0, Number(item.guestCount) || 0, Number(item.closedContracts) || 0, Number(item.fypRegistered) || 0, Number(item.fyp) || 0, Number(item.regBvln) || 0, Number(item.actBvln) || 0, perGuest, cost.speakerFee, cost.transportFee, cost.total];
+                return [formatDateVietnam(item.date) || '', item.time || '', item.session || '', item.title || '', item.category || '', item.priority || '', item.status || '', item.category === 'HN Nhóm' ? item.groupFormat || '' : item.category === 'HN BOSS Tuyển dụng' ? item.bossFormat || '' : '', item.notes || '', item.teamInvited || '', item.tvvNames || '', Number(item.tvvCount) || 0, Number(item.guestPlan) || 0, Number(item.guestCount) || 0, Number(item.closedContracts) || 0, Number(item.fypRegistered) || 0, Number(item.fyp) || 0, Number(item.regBvln) || 0, Number(item.actBvln) || 0, perGuest, cost.speakerFee, cost.transportFee, cost.total];
             });
             const detailSheet = XLSX.utils.aoa_to_sheet([headers, ...detailRows]);
             detailSheet['!cols'] = [12, 9, 10, 34, 22, 13, 14, 18, 30, 25, 28, 10, 16, 16, 16, 20, 20, 14, 16, 24, 22, 18, 20].map(wch => ({ wch }));
@@ -2393,7 +2416,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, summarySheet, 'Tổng hợp');
             XLSX.utils.book_append_sheet(workbook, detailSheet, 'Chi tiết hoạt động');
-            XLSX.writeFile(workbook, `BaoViet_BaoCao_${start}_${end}.xlsx`);
+            XLSX.writeFile(workbook, `BaoViet_BaoCao_${scope}_${start}_${end}.xlsx`);
             showToast(`Đã xuất Excel gồm ${records.length} hoạt động.`);
         }
 
@@ -2401,23 +2424,33 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             if (!window.html2canvas) { alert('Không tải được thư viện tạo poster. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
             const report = getReportRecords();
             if (report.error) { alert(report.error); return; }
-            const { records, start, end } = report;
+            const { records, start, end, scopeLabel, scope } = report;
             const summary = summarizeReport(records);
             const poster = document.createElement('section');
             poster.style.cssText = 'position:fixed;left:-20000px;top:0;width:1200px;padding:56px;background:#ffffff;color:#12304a;font-family:Arial,sans-serif;box-sizing:border-box;';
-            const cards = [
+            const tvvAttendance = records.reduce((sum, item) => sum + (Number(item.tvvCount) || 0), 0);
+            const bossRegistrations = records.reduce((sum, item) => sum + (Number(item.regBvln) || 0), 0);
+            const bossAttendance = records.reduce((sum, item) => sum + (Number(item.actBvln) || 0), 0);
+            const cards = scope === 'all' ? [
                 ['TỔNG LỊCH', summary.total, '#004b8e'], ['HOÀN THÀNH', summary.completed, '#0b7a4b'], ['KHÁCH THAM DỰ', summary.guests, '#b77900'],
                 ['ỨNG VIÊN BOSS', summary.candidates, '#6941a5'], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`, '#0b7a4b'], ['CHI PHÍ ĐẦU TƯ', formatCurrencyVnd(summary.investment), '#005BAC']
+            ] : scope === 'boss' ? [
+                ['TỔNG HN BOSS', summary.total, '#004b8e'], ['ỨNG VIÊN DỰ', summary.candidates, '#6941a5'], ['TVV DỰ', tvvAttendance, '#005BAC'],
+                ['ĐĂNG KÝ BVLN', bossRegistrations, '#b77900'], ['HỌC THỰC TẾ BVLN', bossAttendance, '#0b7a4b'], ['CHI PHÍ ĐẦU TƯ', formatCurrencyVnd(summary.investment), '#005BAC']
+            ] : [
+                ['TỔNG HỘI NGHỊ', summary.total, '#004b8e'], ['HOÀN THÀNH', summary.completed, '#0b7a4b'], ['KHÁCH THAM DỰ', summary.guests, '#b77900'],
+                ['HỢP ĐỒNG CHỐT', summary.contracts, '#6941a5'], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`, '#0b7a4b'], ['CHI PHÍ ĐẦU TƯ', formatCurrencyVnd(summary.investment), '#005BAC']
             ];
             const cardHtml = cards.map(([label, value, color]) => `<div style="background:#f4f8fc;border:1px solid #dce7f1;border-left:6px solid ${color};border-radius:14px;padding:18px"><div style="font-size:13px;font-weight:700;color:#526477;letter-spacing:.5px">${label}</div><div style="font-size:28px;font-weight:800;color:${color};margin-top:8px">${escapeHtml(String(value))}</div></div>`).join('');
             const detailHtml = records.slice(0, 12).map(item => `<tr><td>${formatDateVietnam(item.date)}${item.time ? ' · ' + escapeHtml(item.time) : ''}</td><td>${escapeHtml(item.title || '')}</td><td>${escapeHtml(item.category || '')}</td><td>${escapeHtml(item.status === 'COMPLETED' ? 'Hoàn thành' : item.status === 'CANCELLED' ? 'Đã hủy' : 'Sắp diễn ra')}</td></tr>`).join('');
             poster.innerHTML = `<div style="background:#003B73;color:white;border-radius:18px;padding:30px 36px"><div style="font-size:16px;font-weight:700;color:#FDB813;letter-spacing:2px">BẢO VIỆT NHÂN THỌ</div><h1 style="font-size:34px;margin:12px 0 6px">BÁO CÁO LỊCH HOẠT ĐỘNG</h1><div style="font-size:17px;color:#e3edf6">Kỳ ${formatDateVietnam(start)} – ${formatDateVietnam(end)} · GMT+7</div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0">${cardHtml}</div><div style="padding:14px 18px;background:#fff8e8;border:1px solid #f4dea7;border-radius:12px;font-size:15px;font-weight:700;color:#704f00">${summary.cancelled} hoạt động đã hủy · ${summary.contracts} hợp đồng chốt ngay</div><h2 style="font-size:21px;color:#003B73;margin:26px 0 10px">HOẠT ĐỘNG NỔI BẬT</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr style="background:#e6f0fa;text-align:left"><th style="padding:12px;border-bottom:2px solid #aac5de">Ngày / Giờ</th><th style="padding:12px;border-bottom:2px solid #aac5de">Hoạt động</th><th style="padding:12px;border-bottom:2px solid #aac5de">Phân loại</th><th style="padding:12px;border-bottom:2px solid #aac5de">Trạng thái</th></tr></thead><tbody>${detailHtml || '<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b">Không có hoạt động trong kỳ</td></tr>'}</tbody></table>${records.length > 12 ? `<p style="font-size:12px;color:#64748b;margin-top:10px">Poster hiển thị 12/${records.length} lịch; file Excel chứa đầy đủ chi tiết.</p>` : ''}<div style="font-size:11px;color:#64748b;margin-top:24px;border-top:1px solid #dce7f1;padding-top:12px">Báo cáo được tạo từ dữ liệu lịch trong ứng dụng · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' }).format(new Date())}</div>`;
+            poster.querySelector('h1').textContent = `BÁO CÁO ${scopeLabel.toUpperCase()}`;
             document.body.appendChild(poster);
             try {
                 if (document.fonts && document.fonts.ready) await document.fonts.ready;
                 const canvas = await html2canvas(poster, { scale: 2, backgroundColor: '#ffffff', width: 1200, windowWidth: 1280, useCORS: true });
                 const link = document.createElement('a');
-                link.download = `BaoViet_Poster_${start}_${end}.png`;
+                link.download = `BaoViet_Poster_${scope}_${start}_${end}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 showToast('Đã xuất poster PNG.');
@@ -2431,13 +2464,16 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             if (!window.PptxGenJS) { alert('Không tải được thư viện PowerPoint. Hãy kiểm tra kết nối Internet rồi thử lại.'); return; }
             const report = getReportRecords();
             if (report.error) { alert(report.error); return; }
-            const { records, start, end } = report;
+            const { records, start, end, scopeLabel, scope } = report;
             const summary = summarizeReport(records);
+            const tvvAttendance = records.reduce((sum, item) => sum + (Number(item.tvvCount) || 0), 0);
+            const bossRegistrations = records.reduce((sum, item) => sum + (Number(item.regBvln) || 0), 0);
+            const bossAttendance = records.reduce((sum, item) => sum + (Number(item.actBvln) || 0), 0);
             const pptx = new window.PptxGenJS();
             pptx.layout = 'LAYOUT_WIDE';
             pptx.author = 'Bảo Việt Nhân Thọ';
-            pptx.subject = `Báo cáo lịch hoạt động ${start} – ${end}`;
-            pptx.title = 'Báo cáo lịch hoạt động';
+            pptx.subject = `Báo cáo ${scopeLabel} ${start} – ${end}`;
+            pptx.title = `Báo cáo ${scopeLabel}`;
             pptx.company = 'Bảo Việt Nhân Thọ';
             pptx.lang = 'vi-VN';
             pptx.theme = { headFontFace: 'Aptos Display', bodyFontFace: 'Aptos', lang: 'vi-VN' };
@@ -2446,12 +2482,19 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             cover.background = { color: 'FFFFFF' };
             cover.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.333, h: 1.55, line: { color: blue, transparency: 100 }, fill: { color: blue } });
             cover.addText('BẢO VIỆT NHÂN THỌ', { x: 0.65, y: 0.28, w: 7, h: 0.28, fontFace: 'Aptos', fontSize: 13, bold: true, color: gold, charSpacing: 2 });
-            cover.addText('BÁO CÁO LỊCH HOẠT ĐỘNG', { x: 0.65, y: 0.72, w: 11.6, h: 0.52, fontFace: 'Aptos Display', fontSize: 26, bold: true, color: 'FFFFFF' });
+            cover.addText(`BÁO CÁO ${scopeLabel.toUpperCase()}`, { x: 0.65, y: 0.72, w: 11.6, h: 0.52, fontFace: 'Aptos Display', fontSize: 26, bold: true, color: 'FFFFFF' });
             cover.addText(`Kỳ báo cáo: ${formatDateVietnam(start)} – ${formatDateVietnam(end)}`, { x: 0.68, y: 1.82, w: 8, h: 0.34, fontSize: 16, bold: true, color: blue });
-            const metricCards = [
+            const metricCards = scope === 'all' ? [
                 ['Tổng lịch', String(summary.total)], ['Hoàn thành', String(summary.completed)], ['Đã hủy', String(summary.cancelled)],
                 ['Khách dự', String(summary.guests)], ['Ứng viên BOSS', String(summary.candidates)], ['Hợp đồng', String(summary.contracts)],
                 ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`], ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
+            ] : scope === 'boss' ? [
+                ['Tổng HN BOSS', String(summary.total)], ['Ứng viên dự', String(summary.candidates)], ['TVV dự', String(tvvAttendance)],
+                ['Đăng ký BVLN', String(bossRegistrations)], ['Học thực tế BVLN', String(bossAttendance)], ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
+            ] : [
+                ['Tổng hội nghị', String(summary.total)], ['Hoàn thành', String(summary.completed)], ['Đã hủy', String(summary.cancelled)],
+                ['Khách dự', String(summary.guests)], ['Hợp đồng', String(summary.contracts)], ['FYP T+5', `${summary.fyp.toFixed(1)} trđ`],
+                ['Chi phí đầu tư', formatCurrencyVnd(summary.investment)]
             ];
             metricCards.forEach((metric, index) => {
                 const col = index % 4, row = Math.floor(index / 4), x = 0.65 + col * 3.12, y = 2.5 + row * 1.38;
@@ -2500,7 +2543,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                 lastDetailSlide.addText(`Còn ${omitted} hoạt động chi tiết chưa được đưa vào PPTX vì giới hạn 12 trang. Dùng file Excel để xem đầy đủ.`, { x: 0.56, y: 6.72, w: 12, h: 0.28, fontSize: 9, bold: true, color: 'B45309' });
             }
             try {
-                await pptx.writeFile({ fileName: `BaoViet_BaoCao_${start}_${end}.pptx` });
+                await pptx.writeFile({ fileName: `BaoViet_BaoCao_${scope}_${start}_${end}.pptx` });
                 showToast(`Đã xuất PowerPoint (${1 + Math.ceil(exported.length / maxRowsPerSlide)} trang).${omitted ? ` ${omitted} lịch chi tiết chỉ có trong Excel.` : ''}`);
             } catch (error) {
                 console.error(error);
