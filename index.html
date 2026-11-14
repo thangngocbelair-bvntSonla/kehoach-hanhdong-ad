@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v27.0)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.0)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -45,19 +45,55 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.6); }
+        @media (max-width: 639px) {
+            #matrixView .overflow-x-auto::before,
+            #sectionGroup .overflow-x-auto::before,
+            #sectionRoom .overflow-x-auto::before,
+            #sectionTvnn .overflow-x-auto::before,
+            #sectionBoss .overflow-x-auto::before {
+                content: "↔ Vuốt ngang để xem đầy đủ bảng";
+                display: block;
+                position: sticky;
+                left: 0;
+                z-index: 2;
+                width: max-content;
+                max-width: 100%;
+                margin-bottom: 8px;
+                padding: 6px 9px;
+                border-radius: 8px;
+                background: #f3f4f6;
+                color: #475569;
+                font-size: 10px;
+                font-weight: 600;
+            }
+            #sectionCalendar > div:first-child,
+            #sectionGroup > div:nth-child(2),
+            #sectionRoom > div:nth-child(2),
+            #sectionTvnn > div:nth-child(2),
+            #sectionBoss > div:nth-child(2) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #sectionCalendar > div:first-child > div:last-child { grid-column: span 2; }
+            #sectionGroup > div:first-child > div:last-child,
+            #sectionRoom > div:first-child > div:last-child,
+            #sectionBoss > div:first-child > div:last-child { display: flex; flex-wrap: wrap; width: 100%; }
+            #matrixView > div:first-child { align-items: stretch; flex-direction: column; gap: .75rem; }
+            #matrixView > div:first-child > div:first-child { flex-wrap: wrap; gap: .5rem; }
+            #matrixWeekLabel { width: 100%; }
+            #matrixView > div:first-child > div:last-child { justify-content: flex-end; }
+            #calendarView > div:first-child { flex-wrap: wrap; gap: .5rem; }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800 min-h-screen flex flex-col transition-colors duration-200">
 
     <!-- HEADER BRANDING -->
     <header class="bg-bvblue-700 text-white border-b border-bvblue-600 sticky top-0 z-30 shadow-md">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center space-x-3.5">
-                <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-bvblue-700 shadow-md ring-2 ring-bvyellow-400">
-                    <i class="fa-solid fa-shield-halved text-2xl text-bvblue-700"></i>
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 min-h-20 py-2 sm:py-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center space-x-3.5 min-w-0">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-xl bg-white flex items-center justify-center text-bvblue-700 shadow-md ring-2 ring-bvyellow-400">
+                    <i class="fa-solid fa-shield-halved text-xl sm:text-2xl text-bvblue-700"></i>
                 </div>
-                <div>
-                    <h1 class="text-xl sm:text-2xl font-black tracking-wide text-white uppercase font-sans">
+                <div class="min-w-0">
+                    <h1 class="text-[15px] sm:text-2xl font-black tracking-normal sm:tracking-wide text-white uppercase font-sans whitespace-nowrap">
                         BẢO VIỆT NHÂN THỌ
                     </h1>
                     <p class="text-xs sm:text-sm font-semibold text-bvyellow-400 tracking-wider flex items-center gap-1.5">
@@ -66,21 +102,21 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="flex items-center justify-between gap-1 sm:gap-2 w-full sm:w-auto">
                 <span id="vietnamClock" class="hidden xl:inline text-[11px] font-semibold text-white/90 whitespace-nowrap" aria-live="off"></span>
                 <div class="flex items-center gap-1.5">
                     <span id="firebaseSyncStatus" class="hidden md:inline text-[10px] text-white/85 whitespace-nowrap" aria-live="polite">Chỉ lưu trên máy này</span>
-                    <button id="firebaseAuthButton" type="button" onclick="openFirebaseAuthModal()" class="px-2.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-[11px] font-bold text-white whitespace-nowrap"><i class="fa-solid fa-cloud mr-1"></i><span id="firebaseAuthButtonText">Đăng nhập</span></button>
+                    <button id="firebaseAuthButton" type="button" onclick="openFirebaseAuthModal()" title="Đăng nhập đồng bộ" class="shrink-0 px-2.5 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-[11px] font-bold text-white whitespace-nowrap"><i class="fa-solid fa-cloud mr-1"></i><span id="firebaseAuthButtonText" class="max-[374px]:hidden">Đăng nhập</span></button>
                 </div>
-                <button onclick="openModal()" class="bg-bvyellow-500 hover:bg-bvyellow-600 text-bvblue-900 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow-lg transition-all hover:scale-105 active:scale-95">
-                    <i class="fa-solid fa-plus mr-2"></i> Thêm hoạt động
+                <button onclick="openModal()" title="Thêm hoạt động" class="shrink-0 bg-bvyellow-500 hover:bg-bvyellow-600 text-bvblue-900 font-bold px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow-lg transition-all">
+                    <i class="fa-solid fa-plus mr-1 sm:mr-2"></i><span class="sm:hidden">Thêm</span><span class="hidden sm:inline">Thêm hoạt động</span>
                 </button>
-                <button onclick="openReportModal()" class="bg-white hover:bg-bvblue-50 text-bvblue-800 font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow transition-all">
-                    <i class="fa-solid fa-file-export sm:mr-2"></i><span class="hidden sm:inline">Xuất báo cáo</span>
+                <button onclick="openReportModal()" title="Xuất báo cáo" class="shrink-0 bg-white hover:bg-bvblue-50 text-bvblue-800 font-bold px-2.5 sm:px-3 py-2.5 rounded-xl text-xs sm:text-sm flex items-center shadow transition-all">
+                    <i class="fa-solid fa-file-export mr-1 sm:mr-2"></i><span class="sm:hidden max-[374px]:hidden">Báo cáo</span><span class="hidden sm:inline">Xuất báo cáo</span>
                 </button>
                 
                 <div class="relative" id="utilityMenuWrapper">
-                    <button id="utilityMenuToggle" type="button" onclick="toggleUtilityMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="utilityMenuPanel" title="Mở menu thao tác" class="p-2.5 rounded-xl bg-bvblue-800 border border-bvblue-600 hover:bg-bvblue-600 text-white transition">
+                    <button id="utilityMenuToggle" type="button" onclick="toggleUtilityMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="utilityMenuPanel" title="Mở menu thao tác" class="shrink-0 p-2.5 rounded-xl bg-bvblue-800 border border-bvblue-600 hover:bg-bvblue-600 text-white transition">
                         <i class="fa-solid fa-ellipsis-vertical text-base"></i>
                     </button>
                     <div id="utilityMenuPanel" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 hidden z-50">
@@ -105,35 +141,38 @@
     <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <!-- MASTER NAVIGATION TABS -->
-        <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap gap-2 items-center justify-between">
-            <div class="flex bg-gray-100 p-1.5 rounded-xl w-full lg:w-auto overflow-x-auto custom-scrollbar gap-1">
-                <button id="mainTabCalendar" onclick="switchMainTab('calendar')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm bg-bvblue-600 text-white flex items-center">
+        <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex flex-col lg:flex-row gap-2 items-stretch lg:items-center lg:justify-between min-w-0">
+            <div class="w-full lg:flex-1 min-w-0">
+            <div class="flex bg-gray-100 p-1.5 rounded-xl w-full overflow-x-auto custom-scrollbar gap-1">
+                <button id="mainTabCalendar" onclick="switchMainTab('calendar')" class="shrink-0 whitespace-nowrap px-3 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-sm bg-bvblue-600 text-white flex items-center">
                     <i class="fa-solid fa-calendar-days mr-2 text-bvyellow-400"></i> Lịch Tổng thể tuần/tháng
                 </button>
-                <button id="mainTabGroup" onclick="switchMainTab('group')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                <button id="mainTabGroup" onclick="switchMainTab('group')" class="shrink-0 whitespace-nowrap px-3 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-users mr-2 text-indigo-500"></i> HN cấp Nhóm
                 </button>
-                <button id="mainTabRoom" onclick="switchMainTab('room')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                <button id="mainTabRoom" onclick="switchMainTab('room')" class="shrink-0 whitespace-nowrap px-3 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-building mr-2 text-cyan-600"></i> HN PHÒNG
                 </button>
-                <button id="mainTabTvnn" onclick="switchMainTab('tvnn')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                <button id="mainTabTvnn" onclick="switchMainTab('tvnn')" class="shrink-0 whitespace-nowrap px-3 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-handshake mr-2 text-amber-500"></i> HN TVNN
                 </button>
-                <button id="mainTabBoss" onclick="switchMainTab('boss')" class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
+                <button id="mainTabBoss" onclick="switchMainTab('boss')" class="shrink-0 whitespace-nowrap px-3 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold text-gray-600 hover:text-bvblue-700 hover:bg-white transition-all flex items-center">
                     <i class="fa-solid fa-user-ninja mr-2 text-purple-600"></i> HN BOSS
                 </button>
             </div>
+            <p class="mt-1 px-1 text-[10px] text-gray-500 lg:hidden"><i class="fa-solid fa-arrows-left-right mr-1 text-bvblue-600"></i>Vuốt ngang thanh này để xem đủ các mục</p>
+            </div>
 
             <!-- Global Search -->
-            <div class="flex items-center gap-2 w-full lg:w-auto px-2 pb-2 lg:pb-0">
-                <div class="relative flex-1 lg:w-64">
+            <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto px-2 pb-2 lg:pb-0">
+                <div class="relative col-span-2 w-full sm:col-span-1 sm:flex-1 sm:min-w-[14rem] lg:w-64">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                     <input type="text" id="globalSearchInput" oninput="handleGlobalSearch()" placeholder="Tìm nhanh lịch, TVV, địa bàn..." class="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-bvblue-500 outline-none">
                 </div>
-                <button onclick="resetPlanningView()" title="Xóa bộ lọc và chuyển lịch về kỳ hiện tại; không xóa kế hoạch." class="px-3 py-2 bg-bvblue-50 hover:bg-bvblue-100 text-bvblue-700 border border-bvblue-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
+                <button onclick="resetPlanningView()" title="Xóa bộ lọc và chuyển lịch về kỳ hiện tại; không xóa kế hoạch." class="w-full sm:w-auto justify-center px-2 sm:px-3 py-2 bg-bvblue-50 hover:bg-bvblue-100 text-bvblue-700 border border-bvblue-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
                     <i class="fa-solid fa-crosshairs mr-1"></i> Về hiện tại
                 </button>
-                <button onclick="openResetModal()" title="Chọn ngày, tuần hoặc tháng cụ thể để xóa kế hoạch trong phạm vi đó." class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
+                <button onclick="openResetModal()" title="Chọn ngày, tuần hoặc tháng cụ thể để xóa kế hoạch trong phạm vi đó." class="w-full sm:w-auto justify-center px-2 sm:px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold whitespace-nowrap transition">
                     <i class="fa-solid fa-trash-can mr-1"></i> Xóa kế hoạch
                 </button>
             </div>
@@ -2492,7 +2531,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function exportData() {
             const payload = buildJsonEnvelope(activities, false);
-            downloadJsonPayload(payload, `BVNT_Lich_v27_${formatDateIso(getVietnamNow())}.json`);
+            downloadJsonPayload(payload, `BVNT_Lich_v28_${formatDateIso(getVietnamNow())}.json`);
             showToast('Đã xuất file JSON thành công!');
         }
 
