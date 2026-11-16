@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.3)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.4)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -122,6 +122,9 @@
                     <div id="utilityMenuPanel" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 hidden z-50">
                         <button onclick="exportData()" class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-bvblue-50 flex items-center">
                             <i class="fa-solid fa-download mr-3 text-bvblue-500"></i> Xuất file JSON
+                        </button>
+                        <button onclick="exportReadOnlyHtml()" class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-bvblue-50 flex items-center">
+                            <i class="fa-solid fa-file-arrow-down mr-3 text-emerald-600"></i> Xuất HTML chỉ đọc
                         </button>
                         <label class="w-full text-left px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-bvblue-50 flex items-center cursor-pointer">
                             <i class="fa-solid fa-code-merge mr-3 text-emerald-500"></i> Nhập / gộp JSON
@@ -2548,8 +2551,65 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function exportData() {
             const payload = buildJsonEnvelope(activities, false);
-            downloadJsonPayload(payload, `BVNT_Lich_v28_3_${formatDateIso(getVietnamNow())}.json`);
+            downloadJsonPayload(payload, `BVNT_Lich_v28_4_${formatDateIso(getVietnamNow())}.json`);
             showToast('Đã xuất file JSON thành công!');
+        }
+
+        function exportReadOnlyHtml() {
+            const snapshot = (activities || []).filter(item => item && !item._deleted);
+            if (!snapshot.length) {
+                alert('Chưa có lịch hoạt động để xuất. Hãy tải hoặc nhập dữ liệu trước.');
+                return;
+            }
+            const accepted = confirm(`SẴN SÀNG XUẤT BẢN HTML CHỈ ĐỌC\n\nFile sẽ chứa ${snapshot.length} kế hoạch đang có trong ứng dụng tại thời điểm xuất. Người nhận mở file để xem bản chụp này; dữ liệu không tự cập nhật và không đồng bộ Firebase.\n\nChỉ chia sẻ nếu bạn được phép cung cấp toàn bộ dữ liệu này. Tiếp tục?`);
+            if (!accepted) return;
+
+            const source = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const embeddedJson = JSON.stringify(snapshot)
+                .replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026')
+                .replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+            const bootScript = `<script>window.__BVNT_READONLY_SNAPSHOT__=${embeddedJson};<\/script>\n`;
+            let standalone = source
+                .replace(/<script type="module">[\s\S]*?<\/script>/i, '')
+                .replace(/<title>[^<]*Schedule &amp; Performance Tracker \(v28\.4\)<\/title>/i, '<title>Bảo Việt Nhân Thọ - Bản xem lịch chỉ đọc</title>')
+                .replace('let activities = JSON.parse(localStorage.getItem(\'bv_activities_data_v15\')) || [];', 'let activities = window.__BVNT_READONLY_SNAPSHOT__ || [];')
+                .replace('initializeFirebaseConnection();\n            window.addEventListener(\'firebase-workspace-ready\', initializeFirebaseConnection);\n            window.addEventListener(\'firebase-workspace-error\', () => setFirebaseStatus(\'Firebase chưa khởi tạo được; lịch cục bộ vẫn an toàn.\'));', "setFirebaseStatus('Bản xem chỉ đọc · dữ liệu tại thời điểm xuất'); document.getElementById('firebaseAuthButton')?.classList.add('hidden');")
+                .replace('<script>\n        let activities = window.__BVNT_READONLY_SNAPSHOT__ || [];', `${bootScript}<script>\n        let activities = window.__BVNT_READONLY_SNAPSHOT__ || [];`);
+
+            const readonlyGuard = `<style>
+body[data-bvnt-readonly="true"] #firebaseAuthButton,
+body[data-bvnt-readonly="true"] #utilityMenuWrapper,
+body[data-bvnt-readonly="true"] button[onclick^="openModal"],
+body[data-bvnt-readonly="true"] button[onclick^="openModalForCategory"],
+body[data-bvnt-readonly="true"] button[onclick^="editActivity"],
+body[data-bvnt-readonly="true"] button[onclick^="deleteActivity"],
+body[data-bvnt-readonly="true"] button[onclick^="openResetModal"],
+body[data-bvnt-readonly="true"] button[onclick^="resetPlanningView"] { display:none !important; }
+</style>
+<script>
+document.body.dataset.bvntReadonly='true';
+document.addEventListener('click',function(event){
+  const control=event.target.closest('[onclick]');
+  if(control && /^(openModal|openModalForCategory|editActivity|deleteActivity|clearAllData|openResetModal|resetPlanningView|exportData|importData)/.test(control.getAttribute('onclick')||'')){
+    event.preventDefault(); event.stopImmediatePropagation();
+  }
+},true);
+document.addEventListener('submit',function(event){event.preventDefault();event.stopImmediatePropagation();},true);
+<\/script>`;
+            const bodyClose = standalone.lastIndexOf('</body>');
+            if (bodyClose >= 0) standalone = standalone.slice(0, bodyClose) + readonlyGuard + '\n</body>' + standalone.slice(bodyClose + 7);
+
+            const blob = new Blob([standalone], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `BVNT_BanXem_ChiDoc_${formatDateIso(getVietnamNow())}.html`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+            closeUtilityMenu();
+            showToast(`Đã xuất HTML chỉ đọc gồm ${snapshot.length} kế hoạch.`);
         }
 
         function buildJsonEnvelope(items, isBackup) {
