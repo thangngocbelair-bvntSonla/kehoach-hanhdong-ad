@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.0)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.2)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -481,7 +481,7 @@
                             <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Ngày / Buổi</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="date" onclick="openTvnnColumnFilter(event,'date','Ngày / Buổi')" title="Lọc ngày/buổi" aria-label="Lọc ngày/buổi"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Tên Hội Nghị / Địa bàn</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="title" onclick="openTvnnColumnFilter(event,'title','Tên Hội Nghị / Địa bàn')" title="Lọc tên hội nghị hoặc địa bàn" aria-label="Lọc tên hội nghị hoặc địa bàn"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Hình Thức</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="format" onclick="openTvnnColumnFilter(event,'format','Hình Thức')" title="Lọc hình thức" aria-label="Lọc hình thức"><i class="fa-solid fa-filter"></i></button></div></th>
-                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>TVV / Nhóm Mời</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="team" onclick="openTvnnColumnFilter(event,'team','TVV / Nhóm Mời')" title="Lọc tên TVV hoặc nhóm mời" aria-label="Lọc tên TVV hoặc nhóm mời"><i class="fa-solid fa-filter"></i></button></div></th>
+                            <th class="p-3 border border-amber-500"><div class="flex items-center justify-between gap-1"><span>Nhóm / TVV mời khách</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="team" onclick="openTvnnColumnFilter(event,'team','Nhóm / TVV mời khách')" title="Lọc nhóm hoặc TVV mời khách" aria-label="Lọc nhóm hoặc TVV mời khách"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>TVV Dự</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="tvvCount" onclick="openTvnnColumnFilter(event,'tvvCount','TVV Dự')" title="Lọc số TVV dự" aria-label="Lọc số TVV dự"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>Khách (KH/TH)</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="guests" onclick="openTvnnColumnFilter(event,'guests','Khách (KH/TH)')" title="Lọc số khách" aria-label="Lọc số khách"><i class="fa-solid fa-filter"></i></button></div></th>
                             <th class="p-3 border border-amber-500 text-center"><div class="flex items-center justify-center gap-1"><span>HĐ Chốt</span><button type="button" class="tvnn-filter-trigger text-amber-100 hover:text-white" data-filter-key="contracts" onclick="openTvnnColumnFilter(event,'contracts','HĐ Chốt')" title="Lọc số hợp đồng" aria-label="Lọc số hợp đồng"><i class="fa-solid fa-filter"></i></button></div></th>
@@ -1871,9 +1871,9 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             const tbody = document.getElementById('tvnnTableBody');
             
             let items = activities.filter(a => a.category === 'TVNN Tiệc mặn' || a.category === 'TVNN Tặng quà');
-            const activeFilters = Object.entries(tvnnColumnFilters).filter(([, query]) => String(query || '').trim());
+            const activeFilters = Object.entries(tvnnColumnFilters).filter(([, query]) => isColumnChoiceFilterActive(query));
             if (activeFilters.length) {
-                items = items.filter(item => activeFilters.every(([key, query]) => normalizeTvnnFilterText(getTvnnColumnFilterText(item, key)).includes(normalizeTvnnFilterText(query))));
+                items = items.filter(item => activeFilters.every(([key, query]) => matchesColumnChoiceFilter('tvnn', item, key, query)));
             }
             const sessionSortMinute = { 'Sáng': 0, 'Chiều': 12 * 60, 'Tối': 18 * 60 };
             const getSortMinute = item => {
@@ -1906,7 +1906,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                             <td class="p-3 border-b font-bold ${isBanquet ? 'text-amber-700' : 'text-rose-700'}">
                                 ${isBanquet ? '🍲 Tiệc mặn (500k/cuộc)' : '🎁 Tặng quà (65k/bộ)'}
                             </td>
-                            <td class="p-3 border-b font-semibold text-gray-700">${escapeHtml(item.teamInvited || '--')}<br><span class="text-[10px] text-gray-400">TVV: ${escapeHtml(item.tvvNames || '--')}</span></td>
+                            <td class="p-3 border-b font-semibold text-gray-700">${escapeHtml(item.teamInvited || '--')}<br><span class="text-[10px] text-gray-400">${isBanquet ? 'KH tham dự:' : 'TVV:'} ${escapeHtml(item.tvvNames || '--')}</span></td>
                             <td class="p-3 border-b text-center font-bold text-bvblue-700">${item.tvvCount || 0}</td>
                             <td class="p-3 border-b text-center font-bold text-gray-800">${guest} <span class="text-[10px] text-gray-400 font-normal">(KH: ${item.guestPlan || 0})</span></td>
                             <td class="p-3 border-b text-center font-extrabold text-purple-700">${item.closedContracts || 0} HĐ</td>
@@ -2531,7 +2531,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function exportData() {
             const payload = buildJsonEnvelope(activities, false);
-            downloadJsonPayload(payload, `BVNT_Lich_v28_${formatDateIso(getVietnamNow())}.json`);
+            downloadJsonPayload(payload, `BVNT_Lich_v28_2_${formatDateIso(getVietnamNow())}.json`);
             showToast('Đã xuất file JSON thành công!');
         }
 
@@ -2958,6 +2958,267 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function escapeHtml(str) {
             return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") : '';
+        }
+
+        // Multi-select value lists shared by all HN table column filters.
+        let activeColumnChoiceFilter = null;
+
+        function columnChoiceOption(scope, item, key) {
+            const raw = value => String(value ?? '').trim();
+            const number = value => Number(value) || 0;
+            const money = value => `${Math.round(number(value)).toLocaleString('vi-VN')} đ`;
+            const make = (value, label, sortValue = value) => ({ value: String(value), label: String(label || 'Không có dữ liệu'), sortValue: String(sortValue ?? '') });
+            const title = raw(item.title), notes = raw(item.notes);
+            const status = normalizeActivityStatus(item.status);
+            const statusLabel = status === 'COMPLETED' ? 'Đã hoàn thành' : status === 'CANCELLED' ? 'Hủy HN' : 'Chưa hoàn thành';
+
+            if (key === 'date') return make(item.date || '__EMPTY_DATE__', formatDateVietnam(item.date) || 'Chưa có ngày', item.date || '9999-99-99');
+            if (key === 'title') return make(JSON.stringify([title, notes]), [title, notes].filter(Boolean).join(' — ') || 'Chưa có tên/địa bàn');
+            if (key === 'status') return make(statusLabel, statusLabel);
+
+            if (scope === 'tvnn') {
+                if (key === 'format') {
+                    const label = item.category === 'TVNN Tiệc mặn' ? 'Tiệc mặn' : 'Tặng quà';
+                    return make(item.category || label, label);
+                }
+                if (key === 'team') {
+                    const invited = raw(item.teamInvited), names = raw(item.tvvNames);
+                    const nameLabel = item.category === 'TVNN Tiệc mặn' ? 'KH tham dự' : 'TVV';
+                    return make(JSON.stringify([invited, names]), `${invited || 'Chưa có nhóm/TVV mời'}${names ? ` · ${nameLabel}: ${names}` : ''}`);
+                }
+                if (key === 'tvvCount') return make(number(item.tvvCount), `${number(item.tvvCount)} TVV`);
+                if (key === 'guests') return make(JSON.stringify([number(item.guestCount), number(item.guestPlan)]), `${number(item.guestCount)} thực tế · KH: ${number(item.guestPlan)}`);
+                if (key === 'contracts') return make(number(item.closedContracts), `${number(item.closedContracts)} HĐ`);
+                if (key === 'fyp') return make(number(item.fyp), `${number(item.fyp)} trđ`);
+            }
+
+            if (scope === 'group') {
+                const format = item.groupFormat || 'Tiệc mặn';
+                const guest = number(item.guestCount);
+                let perGuest = number(item.costPerGuest);
+                if (perGuest > 0 && perGuest < 1000) perGuest *= 1000;
+                const guestSupport = format === 'Tiệc mặn' ? Math.min(1600000, guest * perGuest) : Math.min(20, guest) * 25000;
+                let speaker = number(item.speakerFee), transport = number(item.transportFee);
+                if (speaker > 0 && speaker < 1000) speaker *= 1000;
+                if (transport > 0 && transport < 1000) transport *= 1000;
+                if (key === 'format') return make(JSON.stringify([format, perGuest]), `${format}${format === 'Tiệc mặn' ? ` · ${money(perGuest)}/KH` : ''}`);
+                if (key === 'guests') return make(JSON.stringify([guest, number(item.guestPlan)]), `${guest} thực tế · KH: ${number(item.guestPlan)}`);
+                if (key === 'guestCost') return make(guestSupport, money(guestSupport));
+                if (key === 'speakerTransport') return make(JSON.stringify([speaker, transport]), `Thuyết trình: ${money(speaker)} · Xe: ${money(transport)}`);
+                if (key === 'totalInvest') return make(guestSupport + speaker + transport, money(guestSupport + speaker + transport));
+                if (key === 'fyp') return make(number(item.fyp), `${number(item.fyp)} trđ`);
+            }
+
+            if (scope === 'room') {
+                if (key === 'team') return make(raw(item.teamInvited) || '__EMPTY_TEAM__', raw(item.teamInvited) || 'Chưa có Ban/Nhóm mời');
+                if (key === 'tvv') return make(raw(item.tvvNames) || '__EMPTY_TVV__', raw(item.tvvNames) || 'Chưa có danh sách TVV');
+                if (key === 'tvvCount') return make(number(item.tvvCount), `${number(item.tvvCount)} TVV`);
+                if (key === 'guests') return make(JSON.stringify([number(item.guestCount), number(item.guestPlan)]), `${number(item.guestCount)} thực tế · KH: ${number(item.guestPlan)}`);
+                if (key === 'contracts') return make(number(item.closedContracts), `${number(item.closedContracts)} HĐ`);
+                if (key === 'fyp') return make(number(item.fyp), `${number(item.fyp)} trđ`);
+            }
+
+            if (scope === 'boss') {
+                const format = item.bossFormat || 'Tự điền';
+                const guest = number(item.guestCount);
+                let support = format === 'Tiệc mặn' ? guest * 500000 : format === 'Tặng quà' ? guest * 65000 : guest * number(item.costPerGuest);
+                if (format === 'Tự điền' && number(item.costPerGuest) > 0 && number(item.costPerGuest) < 1000) support = guest * number(item.costPerGuest) * 1000;
+                let speaker = number(item.speakerFee), transport = number(item.transportFee);
+                if (speaker > 0 && speaker < 1000) speaker *= 1000;
+                if (transport > 0 && transport < 1000) transport *= 1000;
+                if (key === 'format') return make(format, format);
+                if (key === 'team') {
+                    const invited = raw(item.teamInvited), names = raw(item.tvvNames);
+                    return make(JSON.stringify([invited, names]), `${invited || 'Chưa có TVV/Nhóm phụ trách'}${names ? ` · TVV: ${names}` : ''}`);
+                }
+                if (key === 'tvvCount') return make(number(item.tvvCount), `${number(item.tvvCount)} TVV`);
+                if (key === 'applicants') return make(JSON.stringify([guest, number(item.guestPlan)]), `${guest} thực tế · KH: ${number(item.guestPlan)}`);
+                if (key === 'regBvln') return make(number(item.regBvln), `${number(item.regBvln)} ứng viên`);
+                if (key === 'actBvln') return make(number(item.actBvln), `${number(item.actBvln)} ứng viên`);
+                if (key === 'cost') return make(support + speaker + transport, money(support + speaker + transport));
+            }
+
+            const fallback = scope === 'tvnn' ? getTvnnColumnFilterText(item, key) : getTrackerColumnFilterText(scope, item, key);
+            return make(fallback || '__EMPTY_VALUE__', fallback || 'Không có dữ liệu');
+        }
+
+        function columnChoiceItems(scope) {
+            if (scope === 'tvnn') return activities.filter(item => item.category === 'TVNN Tiệc mặn' || item.category === 'TVNN Tặng quà');
+            const category = { group: 'HN Nhóm', room: 'HN Phòng', boss: 'HN BOSS Tuyển dụng' }[scope];
+            return activities.filter(item => item.category === category);
+        }
+
+        function columnChoiceOptions(scope, key) {
+            const options = new Map();
+            columnChoiceItems(scope).forEach(item => {
+                const option = columnChoiceOption(scope, item, key);
+                const existing = options.get(option.value);
+                if (existing) existing.count += 1;
+                else options.set(option.value, { ...option, count: 1 });
+            });
+            return [...options.values()].sort((a, b) => key === 'date'
+                ? a.sortValue.localeCompare(b.sortValue)
+                : a.label.localeCompare(b.label, 'vi', { numeric: true, sensitivity: 'base' }));
+        }
+
+        function isColumnChoiceFilterActive(value) {
+            return Array.isArray(value) || Boolean(String(value || '').trim());
+        }
+
+        function matchesColumnChoiceFilter(scope, item, key, selected) {
+            if (Array.isArray(selected)) return selected.includes(columnChoiceOption(scope, item, key).value);
+            const text = scope === 'tvnn' ? getTvnnColumnFilterText(item, key) : getTrackerColumnFilterText(scope, item, key);
+            return !String(selected || '').trim() || normalizeTvnnFilterText(text).includes(normalizeTvnnFilterText(selected));
+        }
+
+        function filterTrackerItems(items, scope) {
+            const filters = Object.entries(trackerColumnFilters[scope] || {}).filter(([, value]) => isColumnChoiceFilterActive(value));
+            return filters.length ? items.filter(item => filters.every(([key, selected]) => matchesColumnChoiceFilter(scope, item, key, selected))) : items;
+        }
+
+        function filterChoiceStore(state) {
+            return state.system === 'tvnn' ? tvnnColumnFilters : trackerColumnFilters[state.scope];
+        }
+
+        function renderColumnChoiceOptions() {
+            const state = activeColumnChoiceFilter;
+            const list = document.getElementById('columnChoiceOptions');
+            const query = normalizeTvnnFilterText(document.getElementById('columnChoiceSearch')?.value || '');
+            if (!state || !list) return;
+            const visible = state.options.map((option, index) => ({ option, index }))
+                .filter(({ option }) => !query || normalizeTvnnFilterText(option.label).includes(query));
+            list.innerHTML = visible.length ? visible.map(({ option, index }) => `
+                <label class="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-2 text-xs text-gray-700 hover:bg-gray-50">
+                    <input type="checkbox" class="mt-0.5 shrink-0 accent-amber-600" data-choice-index="${index}" onchange="toggleColumnChoice(${index},this.checked)" ${state.draft.has(option.value) ? 'checked' : ''}>
+                    <span class="min-w-0 flex-1 break-words">${escapeHtml(option.label)}</span>
+                    <span class="shrink-0 text-[10px] text-gray-400">${option.count}</span>
+                </label>`).join('') : '<p class="px-2 py-4 text-center text-xs text-gray-400">Không có dữ liệu phù hợp với từ khóa.</p>';
+            const count = document.getElementById('columnChoiceCount');
+            if (count) count.innerText = `Đã chọn ${state.draft.size}/${state.options.length} giá trị`;
+        }
+
+        function showColumnChoiceFilter(event, state) {
+            activeColumnChoiceFilter = state;
+            const popover = document.createElement('div');
+            popover.id = state.system === 'tvnn' ? 'tvnnFilterPopover' : 'trackerFilterPopover';
+            popover.className = `fixed z-[100] rounded-xl border ${state.palette[0]} bg-white p-3 shadow-xl`;
+            popover.style.width = `${Math.min(320, Math.max(240, window.innerWidth - 16))}px`;
+            popover.style.maxHeight = 'calc(100vh - 16px)';
+            popover.style.overflowY = 'auto';
+            popover.innerHTML = `
+                <div class="mb-2 flex items-center justify-between gap-2"><strong class="text-xs ${state.palette[1]}">Lọc: ${escapeHtml(state.label)}</strong><button type="button" onclick="closeActiveColumnChoice()" class="rounded p-1 text-gray-400 hover:bg-gray-100" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>
+                <input id="columnChoiceSearch" type="search" oninput="renderColumnChoiceOptions()" placeholder="Tìm trong danh sách lựa chọn..." class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-100">
+                <p class="mt-1 text-[10px] text-gray-500">Chọn một hoặc nhiều giá trị; tìm nhanh chỉ thu hẹp danh sách này.</p>
+                <div class="mt-2 flex items-center justify-between gap-2"><button type="button" onclick="selectAllColumnChoices()" class="text-[10px] font-bold text-blue-700 hover:underline">Chọn tất cả</button><button type="button" onclick="clearAllColumnChoices()" class="text-[10px] font-bold text-gray-600 hover:underline">Bỏ chọn tất cả</button></div>
+                <p id="columnChoiceCount" class="mt-1 text-[10px] font-semibold text-gray-500"></p>
+                <div id="columnChoiceOptions" class="mt-1 max-h-52 overflow-y-auto rounded-lg border border-gray-100"></div>
+                <div class="mt-3 flex justify-between gap-2 border-t border-gray-100 pt-2"><button type="button" onclick="clearActiveColumnChoiceFilter()" class="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-50">Xóa lọc</button><button type="button" onclick="applyActiveColumnChoiceFilter()" class="rounded-lg ${state.palette[2]} px-3 py-1.5 text-xs font-bold text-white ${state.palette[3]}">Áp dụng</button></div>`;
+            document.body.appendChild(popover);
+            renderColumnChoiceOptions();
+            const anchor = event.currentTarget.getBoundingClientRect();
+            const box = popover.getBoundingClientRect();
+            const width = box.width;
+            const height = box.height;
+            const left = Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8));
+            let top = anchor.bottom + 6;
+            if (top + height > window.innerHeight - 8) top = anchor.top - height - 6;
+            top = Math.max(8, Math.min(top, window.innerHeight - height - 8));
+            popover.style.left = `${left}px`;
+            popover.style.top = `${top}px`;
+        }
+
+        function closeTrackerFilterPopover() {
+            document.getElementById('trackerFilterPopover')?.remove();
+            if (activeColumnChoiceFilter?.system === 'tracker') activeColumnChoiceFilter = null;
+            trackerFilterActiveScope = null;
+            trackerFilterActiveColumn = null;
+        }
+
+        function closeTvnnFilterPopover() {
+            document.getElementById('tvnnFilterPopover')?.remove();
+            if (activeColumnChoiceFilter?.system === 'tvnn') activeColumnChoiceFilter = null;
+            tvnnFilterActiveColumn = null;
+        }
+
+        function closeActiveColumnChoice() {
+            if (activeColumnChoiceFilter?.system === 'tvnn') closeTvnnFilterPopover();
+            else closeTrackerFilterPopover();
+        }
+
+        function openTrackerColumnFilter(event, scope, key, label) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeTvnnFilterPopover();
+            if (activeColumnChoiceFilter?.system === 'tracker' && trackerFilterActiveScope === scope && trackerFilterActiveColumn === key) {
+                closeTrackerFilterPopover();
+                return;
+            }
+            closeTrackerFilterPopover();
+            trackerFilterActiveScope = scope;
+            trackerFilterActiveColumn = key;
+            const palette = { group: ['border-indigo-200', 'text-indigo-900', 'bg-indigo-600', 'hover:bg-indigo-700'], room: ['border-cyan-200', 'text-cyan-900', 'bg-cyan-700', 'hover:bg-cyan-800'], boss: ['border-purple-200', 'text-purple-900', 'bg-purple-700', 'hover:bg-purple-800'] }[scope];
+            const options = columnChoiceOptions(scope, key);
+            const current = trackerColumnFilters[scope][key];
+            const selected = Array.isArray(current) ? new Set(current) : current ? new Set(options.filter(option => normalizeTvnnFilterText(option.label).includes(normalizeTvnnFilterText(current))).map(option => option.value)) : new Set(options.map(option => option.value));
+            showColumnChoiceFilter(event, { system: 'tracker', scope, key, label, palette, options, draft: selected });
+        }
+
+        function openTvnnColumnFilter(event, key, label) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeTrackerFilterPopover();
+            if (activeColumnChoiceFilter?.system === 'tvnn' && tvnnFilterActiveColumn === key) {
+                closeTvnnFilterPopover();
+                return;
+            }
+            closeTvnnFilterPopover();
+            tvnnFilterActiveColumn = key;
+            const options = columnChoiceOptions('tvnn', key);
+            const current = tvnnColumnFilters[key];
+            const selected = Array.isArray(current) ? new Set(current) : current ? new Set(options.filter(option => normalizeTvnnFilterText(option.label).includes(normalizeTvnnFilterText(current))).map(option => option.value)) : new Set(options.map(option => option.value));
+            showColumnChoiceFilter(event, { system: 'tvnn', scope: 'tvnn', key, label, palette: ['border-amber-200', 'text-amber-900', 'bg-amber-600', 'hover:bg-amber-700'], options, draft: selected });
+        }
+
+        function toggleColumnChoice(index, checked) {
+            const state = activeColumnChoiceFilter;
+            if (!state || !state.options[index]) return;
+            if (checked) state.draft.add(state.options[index].value);
+            else state.draft.delete(state.options[index].value);
+            const count = document.getElementById('columnChoiceCount');
+            if (count) count.innerText = `Đã chọn ${state.draft.size}/${state.options.length} giá trị`;
+        }
+
+        function selectAllColumnChoices() {
+            if (!activeColumnChoiceFilter) return;
+            activeColumnChoiceFilter.draft = new Set(activeColumnChoiceFilter.options.map(option => option.value));
+            renderColumnChoiceOptions();
+        }
+
+        function clearAllColumnChoices() {
+            if (!activeColumnChoiceFilter) return;
+            activeColumnChoiceFilter.draft = new Set();
+            renderColumnChoiceOptions();
+        }
+
+        function applyActiveColumnChoiceFilter() {
+            const state = activeColumnChoiceFilter;
+            if (!state) return;
+            const store = filterChoiceStore(state);
+            if (!state.options.length || state.draft.size === state.options.length) delete store[state.key];
+            else store[state.key] = [...state.draft];
+            if (state.system === 'tvnn') renderTvnnTable();
+            else ({ group: renderGroupTable, room: renderRoomTable, boss: renderBossTable })[state.scope]();
+            closeActiveColumnChoice();
+        }
+
+        function clearActiveColumnChoiceFilter() {
+            const state = activeColumnChoiceFilter;
+            if (!state) return;
+            delete filterChoiceStore(state)[state.key];
+            state.draft = new Set(state.options.map(option => option.value));
+            if (state.system === 'tvnn') renderTvnnTable();
+            else ({ group: renderGroupTable, room: renderRoomTable, boss: renderBossTable })[state.scope]();
+            renderColumnChoiceOptions();
         }
     </script>
 </body>
