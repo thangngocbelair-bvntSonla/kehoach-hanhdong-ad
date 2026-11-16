@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.2)</title>
+    <title>Bảo Việt Nhân Thọ - Schedule & Performance Tracker (v28.3)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -1270,6 +1270,23 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
             renderMatrix();
         }
 
+        function scheduledTimeMinutes(item) {
+            const match = String(item.time || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+            if (!match) return Number.POSITIVE_INFINITY;
+            const hours = Number(match[1]);
+            const minutes = Number(match[2]);
+            return hours <= 23 && minutes <= 59 ? hours * 60 + minutes : Number.POSITIVE_INFINITY;
+        }
+
+        function sortActivitiesByScheduledTime(items) {
+            return [...items].sort((a, b) => {
+                const timeDifference = scheduledTimeMinutes(a) - scheduledTimeMinutes(b);
+                if (Number.isFinite(timeDifference) && timeDifference !== 0) return timeDifference;
+                return String(a.time || '').localeCompare(String(b.time || ''))
+                    || String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+            });
+        }
+
         function renderMatrix() {
             const tbody = document.getElementById('matrixTbody');
             tbody.innerHTML = '';
@@ -1312,7 +1329,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
                 days.forEach(d => {
                     const dateIso = formatDateIso(d);
-                    const cellItems = filtered.filter(a => a.date === dateIso && a.session === session);
+                    const cellItems = sortActivitiesByScheduledTime(filtered.filter(a => a.date === dateIso && a.session === session));
 
                     html += `<td class="p-2 border border-gray-200 align-top min-h-[100px] hover:bg-bvblue-50/20 transition relative group">
                         <div class="flex justify-between items-center mb-1">
@@ -1415,7 +1432,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
                     </div>
                 `;
 
-                const dayItems = filtered.filter(a => a.date === dateIso);
+                const dayItems = sortActivitiesByScheduledTime(filtered.filter(a => a.date === dateIso));
                 
                 const sangItems = dayItems.filter(a => a.session === 'Sáng');
                 const chieuItems = dayItems.filter(a => a.session === 'Chiều');
@@ -2531,7 +2548,7 @@ Trên Firestore: ${cloudActiveCount} kế hoạch.
 
         function exportData() {
             const payload = buildJsonEnvelope(activities, false);
-            downloadJsonPayload(payload, `BVNT_Lich_v28_2_${formatDateIso(getVietnamNow())}.json`);
+            downloadJsonPayload(payload, `BVNT_Lich_v28_3_${formatDateIso(getVietnamNow())}.json`);
             showToast('Đã xuất file JSON thành công!');
         }
 
